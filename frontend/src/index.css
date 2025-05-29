@@ -1,0 +1,114 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+@import "tailwindcss";
+
+:root {
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  --Primary-color: #A9B5DF;
+  --Secondary-color: #2D336B ;
+  --Accent-color: #7886C7;
+  --Primary-font : "Montserrat", sans-serif;
+}
+*{
+  box-sizing: border-box;
+}
+html{
+  scroll-behavior: smooth;
+  font-family: var(--Primary-font) !important;
+}
+body {
+  margin: 0;
+}
+
+button {
+  border-radius: 30px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+button:hover {
+  border-color: var(--Accent-color);
+}
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+.marked{
+  color: var(--Accent-color);
+}
+/* Navbar CSS */
+.SiteLogo{
+  font-family: var(--Primary-font);
+  margin-left: 15px;
+  font-weight: 700;
+  color: var(--Secondary-color);
+}
+nav{
+  background-color: var(--Primary-color);
+  font-family: var(--Primary-font);
+}
+nav ul li{
+  color: black;
+  font-weight: 600;
+}
+nav ul li:hover{
+  color: var(--Secondary-color);
+}
+nav ul li::before:hover{
+  background-color: var(--Accent-color) !important;
+}
+nav .signUp{
+  background-color: var(--Accent-color);
+  color: white;
+  transition: 0.4s;
+}
+nav .signUp:hover{
+  background-color: var(--Secondary-color);
+  border: var(--Secondary-color) 1px solid;
+}
+aside{
+  background-color: var(--Primary-color);
+  font-family: var(--Primary-font);
+}
+nav img{
+  width: 120px;
+  height: 40px;
+  border-radius: 50%;
+}
+.SiteLogo{
+  width: 80px;
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+  a:hover {
+    color: #747bff;
+  }
+  button {
+    background-color: #f9f9f9;
+  }
+}
+
+/* Hero Section */
+.heroSection{
+  font-family: var(--Primary-font);
+}
+.heroText{
+  text-align: left;
+}
+@media screen and (max-width: 768px) {
+  .heroText{
+    text-align: center;
+  }
+
+  
+}
