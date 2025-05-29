@@ -1,12 +1,29 @@
-# React + Vite
+# IPGuardian
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> 🔐 A decentralized platform for securing, registering, and verifying intellectual property rights using blockchain and IPFS.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🚀 Project Overview
 
-## Expanding the ESLint configuration
+**IPGuardian** empowers creators, businesses, and legal authorities to manage intellectual property (IP) rights through a secure and transparent system. It leverages:
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- 🧱 **Hyperledger Fabric** for a permissioned blockchain
+- 📁 **IPFS** for decentralized file storage
+- ⚛️ **React + Tailwind CSS + ZenUI** for a modern frontend
+- 🌐 **Go/Node.js API** to connect frontend with blockchain and IPFS
+
+---
+
+## 🎨 Tech Stack
+
+| Layer         | Tools / Languages                      |
+|---------------|-----------------------------------------|
+| Frontend      | React.js, Tailwind CSS, ZenUI           |
+| Backend       | Go (Gin) or Node.js (Express)           |
+| Blockchain    | Hyperledger Fabric (Go Chaincode)       |
+| Storage       | IPFS (InterPlanetary File System)       |
+| DevOps        | Docker, Vite, GitHub                    |
+
+---
+
