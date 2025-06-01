@@ -1,6 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
 @import "tailwindcss";
-
 
 :root {
   font-synthesis: none;
@@ -8,15 +7,15 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
-  --Primary-color: #A9B5DF;
-  --Secondary-color: #2D336B ;
-  --Accent-color: #7886C7;
-  --Primary-font : "Montserrat", sans-serif;
+  --Primary-color: #a9b5df;
+  --Secondary-color: #2d336b;
+  --Accent-color: #7886c7;
+  --Primary-font: "Montserrat", sans-serif;
 }
-*{
+* {
   box-sizing: border-box;
 }
-html{
+html {
   scroll-behavior: smooth;
   font-family: var(--Primary-font) !important;
 }
@@ -32,7 +31,7 @@ button {
   font-weight: 500;
   font-family: inherit;
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition: 0.4s;
 }
 button:hover {
   border-color: var(--Accent-color);
@@ -41,75 +40,86 @@ button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
-.marked{
+.marked {
   color: var(--Accent-color);
 }
+.inputForm {
+  border: 1px solid var(--Secondary-color);
+  color: black;
+}
+
 /* Navbar CSS */
-.SiteLogo{
+.SiteLogo {
   font-family: var(--Primary-font);
   margin-left: 15px;
   font-weight: 700;
   color: var(--Secondary-color);
 }
-nav{
-  background-color: var(--Primary-color);
+nav {
   font-family: var(--Primary-font);
 }
-nav ul li{
+nav ul li {
   color: black;
   font-weight: 600;
 }
-nav ul li:hover{
+nav ul li:hover {
   color: var(--Secondary-color);
 }
-nav ul li::before:hover{
+nav ul li::before:hover {
   background-color: var(--Accent-color) !important;
 }
-nav .signUp{
+nav .signUp {
   background-color: var(--Accent-color);
   color: white;
   transition: 0.4s;
+  padding: 5px 15px;
+  border-radius: 5px;
 }
-nav .signUp:hover{
+nav .signUp:hover {
   background-color: var(--Secondary-color);
   border: var(--Secondary-color) 1px solid;
 }
-aside{
-  background-color: var(--Primary-color);
-  font-family: var(--Primary-font);
-}
-nav img{
+nav img {
   width: 120px;
   height: 40px;
   border-radius: 50%;
 }
-.SiteLogo{
+.SiteLogo {
   width: 80px;
 }
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+
+/* Footer Styles */
+footer p:hover {
+  color: var(--Secondary-color);
+}
+footer .footer-social a:hover {
+  background-color: var(--Secondary-color);
 }
 
 /* Hero Section */
-.heroSection{
+.heroSection {
   font-family: var(--Primary-font);
 }
-.heroText{
+.heroText {
   text-align: left;
 }
-@media screen and (max-width: 768px) {
-  .heroText{
-    text-align: center;
-  }
 
-  
+/* About Image */
+
+/* Responsive Styles */
+@media screen and (min-width: 992px) {
+  .hero {
+    margin-top: -120px !important;
+  }
+  .about {
+    margin-top: -200px;
+  }
+}
+@media screen and (max-width: 991px) {
+  .hero {
+    margin-top: -50px !important;
+  }
+  .about {
+    margin-top: -120px;
+  }
 }
