@@ -1,32 +1,40 @@
 import React from "react";
-
 // react icons
 import { CgFacebook } from "react-icons/cg";
 import { BsInstagram, BsLinkedin, BsTwitter } from "react-icons/bs";
-
+import { Link } from "react-router-dom";
 export const ResponsiveFooter = () => {
   return (
     <footer className="bg-white boxShadow rounded-xl w-full p-6 md:p-9">
       <div className="flex justify-center gap-[30px] flex-wrap w-full sm:px-32">
         <div className="flex justify-center sm:justify-between gap-[30px] w-full flex-wrap">
+          <Link
+            to="/terms-and-conditions"
+            className="text-[0.9rem] text-[#000000] hover:text-[#7886c7] cursor-pointer transition-all duration-200 font-bold"
+          >
+            Terms & Conditions
+          </Link>
           <p className="text-[0.9rem] text-[#000000] hover:text-[#7886c7] cursor-pointer transition-all duration-200 font-bold">
-            Service
-          </p>
-          <p className="text-[0.9rem] text-[#000000] hover:text-[#7886c7] cursor-pointer transition-all duration-200 font-bold">
-            Features
+            Privacy Policy
           </p>
           <p className="text-[0.9rem] text-[#000000] hover:text-[#7886c7] cursor-pointer transition-all duration-200 font-bold">
             Our Team
           </p>
-          <p className="text-[0.9rem] text-[#000000] hover:text-[#7886c7] cursor-pointer transition-all duration-200 font-bold">
-            Portfolio
-          </p>
+          <Link
+            to="/register"
+            className="text-[0.9rem] text-[#000000] hover:text-[#7886c7] cursor-pointer transition-all duration-200 font-bold"
+          >
+            Register
+          </Link>
           <p className="text-[0.9rem] text-[#000000] hover:text-[#7886c7] cursor-pointer transition-all duration-200 font-bold">
             Blog
           </p>
-          <p className="text-[0.9rem] text-[#000000] hover:text-[#7886c7] cursor-pointer transition-all duration-200 font-bold">
+          <Link
+            to="/contact"
+            className="text-[0.9rem] text-[#000000] hover:text-[#7886c7] cursor-pointer transition-all duration-200 font-bold"
+          >
             Contact Us
-          </p>
+          </Link>
         </div>
 
         <div className="flex items-center flex-wrap gap-[10px] text-[#424242]">

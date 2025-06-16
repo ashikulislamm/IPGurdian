@@ -46,7 +46,7 @@ export const HowItWorks = () => {
       <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
         {howItWorks.map((step, index) => (
           <div key={index} className="flex flex-col items-center text-center">
-            <step.icon className="w-12 h-12 text-indigo-500 mb-4" />
+            <step.icon className="w-12 h-12 text-[#7886c7] mb-4" />
             <h3 className="text-lg font-semibold mb-2">{step.title}</h3>
             <p className="text-sm text-gray-400">{step.description}</p>
           </div>

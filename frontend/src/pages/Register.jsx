@@ -14,7 +14,7 @@ export const RegisterForm = () => {
           style={{ fontFamily: "var(--Primary-font)" }}
         >
           {/* Form section */}
-          <div className="w-full md:w-1/2 p-8 md:p-12 bg-[#a9b5df]">
+          <div className="w-full md:w-1/2 p-8 md:p-12 bg-[#f9faff]">
             <h2 className="text-2xl font-semibold text-black">IPGuridan</h2>
             <h1
               className="text-3xl font-bold mt-4"
@@ -26,10 +26,10 @@ export const RegisterForm = () => {
               Already have an account?{" "}
               <Link
                 to="/login"
-                className="hover:underline"
+                className="hover:underline font-bold"
                 style={{ color: "var(--Secondary-color)" }}
               >
-                Sign up.
+                Sign In.
               </Link>
             </p>
 

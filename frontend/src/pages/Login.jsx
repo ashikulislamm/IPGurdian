@@ -16,7 +16,7 @@ export const LoginForm = () => {
           }}
         >
           {/* Form section */}
-          <div className="w-full md:w-1/2 p-8 md:p-12 bg-[#a9b5df]">
+          <div className="w-full md:w-1/2 p-8 md:p-12 bg-[#f9faff]">
             <h2
               className="text-2xl font-semibold"
               style={{
@@ -35,11 +35,11 @@ export const LoginForm = () => {
             >
               Welcome back
             </h1>
-            <p className="text-black mt-1 mb-6 text-sm">
+            <p className="text-black mt-1 mb-6 text-sm ">
               Start your website in seconds. Don’t have an account?{" "}
               <Link
                 to="/register"
-                className="hover:underline"
+                className="hover:underline font-bold"
                 style={{ color: "var(--Secondary-color)" }}
               >
                 Sign up.
