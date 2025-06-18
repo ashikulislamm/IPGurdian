@@ -1,5 +1,6 @@
 import React from "react";
 import HeroImg from "../assets/Hero.png";
+import { Link } from "react-router-dom";
 
 export const HeroSection = () => {
   return (
@@ -36,12 +37,12 @@ export const HeroSection = () => {
             blockchain technology — all in one secure platform.
           </p>
           <div className="mt-10 flex items-center justify-center gap-x-6">
-            <a
+            <Link to="/register"
               href="#"
               className="text-sm/6 font-semibold bg-[#7886c7] text-white px-4 py-2 rounded-lg hover:bg-[#2D336B] transition-all duration-200"
             >
               Get Started
-            </a>
+            </Link>
             <a href="#" className="text-sm/6 font-semibold text-gray-900">
               Learn more <span aria-hidden="true">→</span>
             </a>

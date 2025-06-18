@@ -15,7 +15,7 @@ export const RegisterForm = () => {
         >
           {/* Form section */}
           <div className="w-full md:w-1/2 p-8 md:p-12 bg-[#f9faff]">
-            <h2 className="text-2xl font-semibold text-black">IPGuridan</h2>
+            <h2 className="text-2xl font-semibold text-black">IPGurdian</h2>
             <h1
               className="text-3xl font-bold mt-4"
               style={{ color: "var(--Secondary-color)" }}

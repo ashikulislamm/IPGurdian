@@ -24,7 +24,7 @@ export const LoginForm = () => {
                 fontFamily: "var(--Primary-font)",
               }}
             >
-              IPGuridan
+              IPGurdian
             </h2>
             <h1
               className="text-3xl font-bold mt-4"
