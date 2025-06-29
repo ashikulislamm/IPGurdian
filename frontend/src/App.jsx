@@ -6,6 +6,7 @@ import { Contact } from "../src/pages/Contact.jsx";
 import { RegisterForm } from "../src/pages/Register.jsx";
 import { TermsAndConditions } from "./pages/TermsConditions.jsx";
 import { UserDashboard } from "./pages/Profile.jsx";
+import {IPDetails} from "./pages/IPDetails.jsx";
 import "./App.css";
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
               element={<TermsAndConditions />}
             />
             <Route path="/dashboard" element={<UserDashboard />} />
+            <Route path="/ip-details/:id" element={<IPDetails />} />
           </Routes>
         </Router>
       </div>
