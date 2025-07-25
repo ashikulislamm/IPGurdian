@@ -8,20 +8,20 @@
 
 **IPGuardian** empowers creators, businesses, and legal authorities to manage intellectual property (IP) rights through a secure and transparent system. It leverages:
 
-- 🧱 **Hyperledger Fabric** for a permissioned blockchain
+- 🧱 **Go Ethereum** for a permissioned blockchain
 - 📁 **IPFS** for decentralized file storage
-- ⚛️ **React + Tailwind CSS + ZenUI** for a modern frontend
-- 🌐 **Go/Node.js API** to connect frontend with blockchain and IPFS
+- ⚛️ **React + Tailwind CSS** for a modern frontend
+- 🌐 **Node.js API** to connect frontend with blockchain and IPFS
 
 ---
 
 ## 🎨 Tech Stack
 
-| Layer         | Tools / Languages                      |
+| Layer         | Tools / Languages                       |
 |---------------|-----------------------------------------|
-| Frontend      | React.js, Tailwind CSS, ZenUI           |
-| Backend       | Go (Gin) or Node.js (Express)           |
-| Blockchain    | Hyperledger Fabric (Go Chaincode)       |
+| Frontend      | React.js, Tailwind CSS                  |
+| Backend       | Node.js (Express)                       |
+| Blockchain    | Go Ethereum                             |
 | Storage       | IPFS (InterPlanetary File System)       |
 | DevOps        | Docker, Vite, GitHub                    |
 
