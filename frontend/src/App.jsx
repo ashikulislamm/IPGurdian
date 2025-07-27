@@ -6,13 +6,14 @@ import { Contact } from "../src/pages/Contact.jsx";
 import { RegisterForm } from "../src/pages/Register.jsx";
 import { TermsAndConditions } from "./pages/TermsConditions.jsx";
 import { UserDashboard } from "./pages/Profile.jsx";
-import {IPDetails} from "./pages/IPDetails.jsx";
+import { IPDetails } from "./pages/IPDetails.jsx";
+import { AuthProvider } from "./Context/AuthContext.jsx";
 import "./App.css";
 
 function App() {
   return (
     <>
-      <div>
+      <AuthProvider>
         <Router>
           <Routes>
             <Route path="/" element={<Home />} />
@@ -27,7 +28,7 @@ function App() {
             <Route path="/ip-details/:id" element={<IPDetails />} />
           </Routes>
         </Router>
-      </div>
+      </AuthProvider>
     </>
   );
 }

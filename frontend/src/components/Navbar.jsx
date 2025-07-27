@@ -3,7 +3,9 @@ import Logo from "../assets/FavIcon.png";
 import { useState } from "react";
 import { Dialog, DialogPanel } from "@headlessui/react";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { AuthContext } from "../Context/AuthContext.jsx";
+import { useContext } from "react";
 const navigation = [
   { name: "Product", href: "#" },
   { name: "Features", href: "#" },
@@ -14,6 +16,13 @@ const navigation = [
 
 export const ResponsiveNavbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { user, logout } = useContext(AuthContext);
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
 
   return (
     <header className="absolute inset-x-0 top-0 z-50 mb-5">
@@ -93,12 +102,20 @@ export const ResponsiveNavbar = () => {
                 ))}
               </div>
               <div className="py-6">
-                <Link
-                  to="/login"
-                  className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
-                >
-                  Log in
-                </Link>
+                {user ? (
+                  <>
+                    <Link to="/profile" className="...">
+                      My Profile
+                    </Link>
+                    <button onClick={handleLogout} className="...">
+                      Logout
+                    </button>
+                  </>
+                ) : (
+                  <Link to="/login" className="...">
+                    Log in
+                  </Link>
+                )}
               </div>
             </div>
           </div>
