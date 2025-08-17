@@ -32,7 +32,7 @@
     -> geth --datadir "./data"  --port 30304 --bootnodes enode://743b5eda3597487178831e5c969cc288a77c9382c06ee14a29b562cd97a2e0cbbd5a70e2b5df2c86518506c982c56a6efaae72023c3f64be8ef5562171d971dd@127.0.0.1:0?discport=30301 --authrpc.port 8547 --ipcdisable --allow-insecure-unlock  --http --http.corsdomain="https://remix.ethereum.org" --http.api web3,eth,debug,personal,net --networkid 454545 --unlock 0x2270f85F95512c14E46cCC66125860eaE17bC35E --password password.txt  --mine --miner.etherbase=0x2270f85F95512c14E46cCC66125860eaE17bC35E
 
     -> FROM GPT
-    geth --datadir "./data" --port 30304 --networkid 454545 --bootnodes enode://743b5eda3597487178831e5c969cc288a77c9382c06ee14a29b562cd97a2e0cbbd5a70e2b5df2c86518506c982c56a6efaae72023c3f64be8ef5562171d971dd@127.0.0.1:30301?discport=30301 --authrpc.port 8547 --ipcdisable --http --http.addr 127.0.0.1 --http.port 8545 --http.api web3,eth,debug,personal,net,txpool --http.corsdomain "https://remix.ethereum.org" --allow-insecure-unlock --unlock 0x2270f85F95512c14E46cCC66125860eaE17bC35E --password password.txt --mine --miner.etherbase=0x2270f85F95512c14E46cCC66125860eaE17bC35E
+    geth --datadir "./data" --port 30304 --networkid 454545 --bootnodes enode://743b5eda3597487178831e5c969cc288a77c9382c06ee14a29b562cd97a2e0cbbd5a70e2b5df2c86518506c982c56a6efaae72023c3f64be8ef5562171d971dd@127.0.0.1:30301?discport=30301 --authrpc.port 8547 --ipcdisable --http --http.addr 127.0.0.1 --http.port 8545 --http.api web3,eth,debug,personal,net,txpool --http.corsdomain "https://remix.ethereum.org" --allow-insecure-unlock --unlock 0x2270f85F95512c14E46cCC66125860eaE17bC35E --password password.txt --mine --miner.etherbase=0x2270f85F95512c14E46cCC66125860eaE17bC35E --miner.gasprice 0 --txpool.pricelimit 0
 
 
 
