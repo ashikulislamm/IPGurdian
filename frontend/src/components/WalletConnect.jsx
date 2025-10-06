@@ -7,7 +7,7 @@ import {
   CheckCircleIcon,
   ArrowPathIcon,
 } from "@heroicons/react/24/outline";
-import { useWeb3 } from "../Context/Web3Context.jsx";
+import { useWeb3 } from "../Context/Web3Context-simple.jsx";
 
 const WalletConnect = ({
   showBalance = true,

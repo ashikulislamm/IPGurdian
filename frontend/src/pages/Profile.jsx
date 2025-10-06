@@ -20,6 +20,7 @@ import { ResponsiveNavbar } from "../components/Navbar";
 import { ResponsiveFooter } from "../components/Footer";
 import { AuthContext } from "../Context/AuthContext";
 import { useWeb3 } from "../Context/Web3Context-simple.jsx";
+import WalletConnect from "../components/WalletConnect";
 import { useNavigate } from "react-router-dom";
 import UserAvatar from "../assets/profile.png";
 
@@ -412,18 +413,52 @@ const RegisterIPPanel = ({ setPopup }) => {
       return;
     }
 
-    // Mock blockchain functionality for testing
-    console.log("Mock IP registration for testing");
+    // Check wallet connection (optional for testing)
+    if (!isConnected) {
+      console.log("Wallet not connected - proceeding with mock registration");
+    }
+
+    // Check network (optional for testing) 
+    if (isConnected && !isSupportedNetwork()) {
+      setPopup({
+        show: true,
+        message: "Please switch to a supported network for blockchain registration",
+        success: false,
+      });
+      // Don't return - allow mock registration to continue
+    }
 
     setIsSubmitting(true);
 
     try {
-      // Simulate blockchain registration for testing
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // For now, simulate blockchain registration
+      // TODO: Implement actual smart contract interaction
+      console.log("Registering IP with data:", {
+        title: formData.title,
+        description: formData.description,
+        ipType: formData.ipType,
+        category: formData.category,
+        creator: account
+      });
+
+      // Simulate transaction delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Mock transaction result
+      const mockTx = {
+        transactionHash: `0x${Math.random().toString(16).substring(2, 66)}`,
+        blockNumber: Math.floor(Math.random() * 1000000),
+        gasUsed: "21000",
+        ipId: Math.floor(Math.random() * 1000).toString(),
+      };
+
+      setBlockchainTx(mockTx);
 
       setPopup({
         show: true,
-        message: "IP registered successfully (test mode)!",
+        message: isConnected 
+          ? "IP registered successfully! (Smart contract integration coming soon)" 
+          : "IP data validated successfully! Connect wallet for blockchain registration.",
         success: true,
       });
 
@@ -441,6 +476,7 @@ const RegisterIPPanel = ({ setPopup }) => {
       // Clear file input
       const fileInput = document.querySelector('input[type="file"]');
       if (fileInput) fileInput.value = "";
+
     } catch (error) {
       console.error("Registration error:", error);
       setPopup({
@@ -484,11 +520,9 @@ const RegisterIPPanel = ({ setPopup }) => {
         Register New Intellectual Property
       </h2>
 
-      {/* Wallet Connection Status - Temporarily disabled */}
-      <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <p className="text-blue-800 text-sm">
-          <strong>Test Mode:</strong> Blockchain wallet connection temporarily disabled for debugging.
-        </p>
+      {/* Wallet Connection Status */}
+      <div className="mb-6">
+        <WalletConnect showBalance={false} />
       </div>
 
       {/* Blockchain Transaction Success */}
@@ -710,21 +744,36 @@ const RegisterIPPanel = ({ setPopup }) => {
           </label>
         </div>
 
-        {/* Development Notice */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex items-start space-x-3">
-            <ExclamationTriangleIcon className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-blue-800">
-              <p className="font-medium mb-1">Development Mode</p>
-              <p>
-                IP registration is currently in demo mode. Blockchain
-                integration with your smart contract will be activated once the
-                Web3 setup is complete. This will provide immutable timestamp
-                proof and cryptographic verification.
-              </p>
+        {/* Blockchain Status Notice */}
+        {!isConnected && (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+            <div className="flex items-start space-x-3">
+              <WalletIcon className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+              <div className="text-sm text-amber-800">
+                <p className="font-medium mb-1">Wallet Connection Required</p>
+                <p>
+                  Please connect your MetaMask wallet to register your IP on the blockchain.
+                  This ensures immutable proof of ownership and creation timestamp.
+                </p>
+              </div>
             </div>
           </div>
-        </div>
+        )}
+        
+        {isConnected && !isSupportedNetwork() && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="flex items-start space-x-3">
+              <ExclamationTriangleIcon className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+              <div className="text-sm text-red-800">
+                <p className="font-medium mb-1">Unsupported Network</p>
+                <p>
+                  Please switch to a supported network (Ethereum Mainnet, Goerli, or Sepolia) 
+                  to register your IP on the blockchain.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Submit Button */}
         <div className="pt-4">

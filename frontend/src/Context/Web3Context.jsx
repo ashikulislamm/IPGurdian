@@ -1187,6 +1187,7 @@ export const Web3Provider = ({ children }) => {
   const [error, setError] = useState(null);
   const [balance, setBalance] = useState("0");
   const [isInitialized, setIsInitialized] = useState(false);
+  const [initError, setInitError] = useState(null);
 
   // Utility functions
   const isMetaMaskInstalled = useCallback(() => {
