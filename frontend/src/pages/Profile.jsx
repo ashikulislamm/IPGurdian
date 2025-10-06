@@ -431,20 +431,10 @@ const RegisterIPPanel = ({ setPopup }) => {
     setIsSubmitting(true);
 
     try {
-      // For now, simulate blockchain registration
-      // TODO: Implement actual smart contract interaction
-      console.log("Registering IP with data:", {
-        title: formData.title,
-        description: formData.description,
-        ipType: formData.ipType,
-        category: formData.category,
-        creator: account
-      });
-
-      // Simulate transaction delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Mock transaction result
+      // Generate file hash if file is provided
+      const fileHash = formData.file ? await generateFileHash(formData.file) : null;
+      
+      // Mock transaction result for blockchain simulation
       const mockTx = {
         transactionHash: `0x${Math.random().toString(16).substring(2, 66)}`,
         blockNumber: Math.floor(Math.random() * 1000000),
@@ -452,13 +442,48 @@ const RegisterIPPanel = ({ setPopup }) => {
         ipId: Math.floor(Math.random() * 1000).toString(),
       };
 
+      // Prepare IP data for backend
+      const ipData = {
+        title: formData.title,
+        description: formData.description,
+        ipType: formData.ipType,
+        category: formData.category,
+        tags: formData.tags,
+        creator: account || 'demo-address',
+        transactionHash: mockTx.transactionHash,
+        blockNumber: mockTx.blockNumber,
+        gasUsed: mockTx.gasUsed,
+        ipId: mockTx.ipId,
+        fileName: formData.file?.name || null,
+        fileSize: formData.file?.size || null,
+        fileHash: fileHash,
+        isPublic: formData.isPublic
+      };
+
+      console.log("Registering IP with data:", ipData);
+
+      // Save to backend database
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5000/api/ip/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(ipData)
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to register IP');
+      }
+
       setBlockchainTx(mockTx);
 
       setPopup({
         show: true,
-        message: isConnected 
-          ? "IP registered successfully! (Smart contract integration coming soon)" 
-          : "IP data validated successfully! Connect wallet for blockchain registration.",
+        message: "IP registered successfully and saved to your account!",
         success: true,
       });
 
@@ -815,6 +840,459 @@ const RegisterIPPanel = ({ setPopup }) => {
   );
 };
 
+// RegisteredIPsPanel Component
+const RegisteredIPsPanel = ({ setActivePanel, setPopup }) => {
+  const [ips, setIps] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedIP, setSelectedIP] = useState(null);
+  const [showDetails, setShowDetails] = useState(false);
+  const [stats, setStats] = useState(null);
+
+  // Fetch user IPs
+  const fetchIPs = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      
+      const params = new URLSearchParams({
+        status: filter === 'all' ? '' : filter,
+        search: searchTerm,
+        limit: 50
+      });
+
+      const response = await fetch(`http://localhost:5000/api/ip/list?${params}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setIps(result.data.ips);
+      } else {
+        console.error('Error fetching IPs:', result.error);
+      }
+    } catch (error) {
+      console.error('Error fetching IPs:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch IP statistics
+  const fetchStats = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5000/api/ip/stats', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        setStats(result.data);
+      }
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchIPs();
+    fetchStats();
+  }, [filter, searchTerm]);
+
+  // View IP details
+  const viewIPDetails = async (ipId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:5000/api/ip/${ipId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        setSelectedIP(result.data);
+        setShowDetails(true);
+      }
+    } catch (error) {
+      console.error('Error fetching IP details:', error);
+    }
+  };
+
+  // Delete IP
+  const deleteIP = async (ipId) => {
+    if (!window.confirm('Are you sure you want to delete this IP registration?')) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:5000/api/ip/${ipId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        setPopup({
+          show: true,
+          message: 'IP deleted successfully',
+          success: true
+        });
+        fetchIPs(); // Refresh list
+        fetchStats(); // Refresh stats
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      setPopup({
+        show: true,
+        message: `Failed to delete IP: ${error.message}`,
+        success: false
+      });
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'confirmed': return 'text-green-600 bg-green-100';
+      case 'pending': return 'text-yellow-600 bg-yellow-100';
+      case 'failed': return 'text-red-600 bg-red-100';
+      default: return 'text-gray-600 bg-gray-100';
+    }
+  };
+
+  const getIPTypeIcon = (ipType) => {
+    switch (ipType) {
+      case 'copyright': return '©';
+      case 'trademark': return '™';
+      case 'patent': return '⚖️';
+      case 'design': return '🎨';
+      case 'trade-secret': return '🔐';
+      default: return '📄';
+    }
+  };
+
+  if (showDetails && selectedIP) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.3 }}
+        className="w-full max-w-6xl mx-auto bg-white p-8 rounded-2xl shadow-md"
+      >
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-3xl font-bold text-[#2d336b]">IP Details</h2>
+          <button
+            onClick={() => setShowDetails(false)}
+            className="flex items-center gap-2 text-[#7886c7] hover:text-[#2d336b] transition-all"
+          >
+            <XMarkIcon className="h-5 w-5" />
+            Back to List
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Basic Information */}
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-xl font-semibold mb-4 text-[#2d336b]">Basic Information</h3>
+              <div className="space-y-3">
+                <div>
+                  <label className="font-semibold text-gray-700">Title:</label>
+                  <p className="text-gray-600">{selectedIP.title}</p>
+                </div>
+                <div>
+                  <label className="font-semibold text-gray-700">Type:</label>
+                  <p className="text-gray-600 flex items-center gap-2">
+                    <span>{getIPTypeIcon(selectedIP.ipType)}</span>
+                    {selectedIP.ipType}
+                  </p>
+                </div>
+                <div>
+                  <label className="font-semibold text-gray-700">Category:</label>
+                  <p className="text-gray-600">{selectedIP.category}</p>
+                </div>
+                <div>
+                  <label className="font-semibold text-gray-700">Status:</label>
+                  <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(selectedIP.status)}`}>
+                    {selectedIP.status}
+                  </span>
+                </div>
+                <div>
+                  <label className="font-semibold text-gray-700">Registration Date:</label>
+                  <p className="text-gray-600">{selectedIP.formattedDate}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Description */}
+            <div>
+              <label className="font-semibold text-gray-700">Description:</label>
+              <p className="text-gray-600 mt-2 leading-relaxed">{selectedIP.description}</p>
+            </div>
+
+            {selectedIP.tags && (
+              <div>
+                <label className="font-semibold text-gray-700">Tags:</label>
+                <p className="text-gray-600">{selectedIP.tags}</p>
+              </div>
+            )}
+          </div>
+
+          {/* Blockchain & Technical Information */}
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-xl font-semibold mb-4 text-[#2d336b]">Blockchain Information</h3>
+              <div className="space-y-3">
+                {selectedIP.blockchain.transactionHash && (
+                  <div>
+                    <label className="font-semibold text-gray-700">Transaction Hash:</label>
+                    <p className="text-gray-600 font-mono text-sm break-all">
+                      {selectedIP.blockchain.transactionHash}
+                    </p>
+                  </div>
+                )}
+                {selectedIP.blockchain.blockNumber && (
+                  <div>
+                    <label className="font-semibold text-gray-700">Block Number:</label>
+                    <p className="text-gray-600">{selectedIP.blockchain.blockNumber}</p>
+                  </div>
+                )}
+                {selectedIP.blockchain.ipId && (
+                  <div>
+                    <label className="font-semibold text-gray-700">Smart Contract IP ID:</label>
+                    <p className="text-gray-600">{selectedIP.blockchain.ipId}</p>
+                  </div>
+                )}
+                <div>
+                  <label className="font-semibold text-gray-700">Creator Address:</label>
+                  <p className="text-gray-600 font-mono text-sm break-all">{selectedIP.creator}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* File Information */}
+            {selectedIP.file && selectedIP.file.name && (
+              <div>
+                <h3 className="text-xl font-semibold mb-4 text-[#2d336b]">File Information</h3>
+                <div className="space-y-3">
+                  <div>
+                    <label className="font-semibold text-gray-700">File Name:</label>
+                    <p className="text-gray-600">{selectedIP.file.name}</p>
+                  </div>
+                  {selectedIP.file.size && (
+                    <div>
+                      <label className="font-semibold text-gray-700">File Size:</label>
+                      <p className="text-gray-600">{(selectedIP.file.size / 1024).toFixed(2)} KB</p>
+                    </div>
+                  )}
+                  {selectedIP.file.hash && (
+                    <div>
+                      <label className="font-semibold text-gray-700">File Hash (SHA-256):</label>
+                      <p className="text-gray-600 font-mono text-sm break-all">{selectedIP.file.hash}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Settings */}
+            <div>
+              <h3 className="text-xl font-semibold mb-4 text-[#2d336b]">Settings</h3>
+              <div className="space-y-3">
+                <div>
+                  <label className="font-semibold text-gray-700">Visibility:</label>
+                  <p className="text-gray-600">
+                    {selectedIP.isPublic ? 'Public (visible in marketplace)' : 'Private'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-4 mt-8 pt-6 border-t">
+          {selectedIP.blockchain && selectedIP.blockchain.transactionHash && (
+            <a
+              href={`https://etherscan.io/tx/${selectedIP.blockchain.transactionHash}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all"
+            >
+              <LinkIcon className="h-4 w-4" />
+              View on Etherscan
+            </a>
+          )}
+          <button
+            onClick={() => deleteIP(selectedIP.id)}
+            className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-all"
+          >
+            Delete IP
+          </button>
+        </div>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.3 }}
+      className="w-full max-w-6xl mx-auto bg-white p-8 rounded-2xl shadow-md"
+    >
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-3xl font-bold text-[#2d336b]">Registered IPs</h2>
+        <button
+          onClick={() => setActivePanel("registerip")}
+          className="flex items-center gap-2 bg-[#7886c7] text-white px-4 py-2 rounded-lg hover:bg-[#2d336b] transition-all"
+        >
+          <PlusIcon className="h-4 w-4" />
+          Register New IP
+        </button>
+      </div>
+
+      {/* Statistics */}
+      {stats && (
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+          <div className="bg-blue-50 p-4 rounded-lg">
+            <p className="text-2xl font-bold text-blue-600">{stats.overview.total}</p>
+            <p className="text-sm text-blue-800">Total IPs</p>
+          </div>
+          <div className="bg-green-50 p-4 rounded-lg">
+            <p className="text-2xl font-bold text-green-600">{stats.overview.confirmed}</p>
+            <p className="text-sm text-green-800">Confirmed</p>
+          </div>
+          <div className="bg-yellow-50 p-4 rounded-lg">
+            <p className="text-2xl font-bold text-yellow-600">{stats.overview.pending}</p>
+            <p className="text-sm text-yellow-800">Pending</p>
+          </div>
+          <div className="bg-purple-50 p-4 rounded-lg">
+            <p className="text-2xl font-bold text-purple-600">{stats.overview.public}</p>
+            <p className="text-sm text-purple-800">Public</p>
+          </div>
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <p className="text-2xl font-bold text-gray-600">
+              {stats.overview.total > 0 ? Math.round((stats.overview.confirmed / stats.overview.total) * 100) : 0}%
+            </p>
+            <p className="text-sm text-gray-800">Success Rate</p>
+          </div>
+        </div>
+      )}
+
+      {/* Filters */}
+      <div className="flex flex-col md:flex-row gap-4 mb-6">
+        <div className="flex-1">
+          <input
+            type="text"
+            placeholder="Search IPs by title, description, or category..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7886c7]"
+          />
+        </div>
+        <select
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7886c7]"
+        >
+          <option value="all">All Status</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="pending">Pending</option>
+          <option value="failed">Failed</option>
+        </select>
+      </div>
+
+      {/* IP List */}
+      {loading ? (
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#7886c7] mx-auto"></div>
+          <p className="mt-4 text-[#2d336b]">Loading your IPs...</p>
+        </div>
+      ) : ips.length === 0 ? (
+        <div className="text-center py-12">
+          <FolderIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-500 mb-4">
+            {searchTerm || filter !== 'all' ? 'No IPs found matching your criteria' : 'No IPs registered yet'}
+          </p>
+          <button
+            onClick={() => setActivePanel("registerip")}
+            className="bg-[#7886c7] text-white px-6 py-2 rounded-lg hover:bg-[#2d336b] transition-all"
+          >
+            Register Your First IP
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {ips.map((ip) => (
+            <div key={ip.id} className="border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex-1">
+                  <h3 className="font-semibold text-lg text-[#2d336b] mb-2">{ip.title}</h3>
+                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">{ip.description}</p>
+                  <div className="flex items-center gap-4 text-sm">
+                    <span className="flex items-center gap-1">
+                      <span>{getIPTypeIcon(ip.ipType)}</span>
+                      {ip.ipType}
+                    </span>
+                    <span className="text-gray-500">{ip.category}</span>
+                  </div>
+                </div>
+                <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(ip.status)}`}>
+                  {ip.status}
+                </span>
+              </div>
+              
+              <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                <span className="text-sm text-gray-500">{ip.formattedDate}</span>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => viewIPDetails(ip.id)}
+                    className="text-[#7886c7] hover:text-[#2d336b] text-sm font-medium transition-all"
+                  >
+                    View Details
+                  </button>
+                  <button
+                    onClick={() => deleteIP(ip.id)}
+                    className="text-red-600 hover:text-red-800 text-sm font-medium transition-all"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+
+              {ip.transactionHash && (
+                <div className="mt-3 pt-3 border-t border-gray-100">
+                  <a
+                    href={`https://etherscan.io/tx/${ip.transactionHash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-xs text-blue-600 hover:text-blue-800 transition-all"
+                  >
+                    <LinkIcon className="h-3 w-3" />
+                    View on Blockchain
+                  </a>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </motion.div>
+  );
+};
+
 export const UserDashboard = () => {
   const [activePanel, setActivePanel] = useState("user");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -1024,28 +1502,7 @@ export const UserDashboard = () => {
         setPopup={setPopup}
       />
     ),
-    ips: (
-      <motion.div
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.3 }}
-        className="w-full max-w-4xl mx-auto bg-white p-8 rounded-2xl shadow-md"
-      >
-        <h2 className="text-2xl font-bold mb-4 text-[#2d336b]">
-          Registered IPs
-        </h2>
-        <div className="text-center py-12">
-          <FolderIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-500 mb-4">No IPs registered yet</p>
-          <button
-            onClick={() => setActivePanel("registerip")}
-            className="bg-[#7886c7] text-white px-6 py-2 rounded-lg hover:bg-[#2d336b] transition-all"
-          >
-            Register Your First IP
-          </button>
-        </div>
-      </motion.div>
-    ),
+    ips: <RegisteredIPsPanel setActivePanel={setActivePanel} setPopup={setPopup} />,
     history: (
       <motion.div
         initial={{ opacity: 0, x: 20 }}
