@@ -5,7 +5,8 @@ import {
   getIPDetails,
   updateIPStatus,
   deleteIP,
-  getIPStats
+  getIPStats,
+  getUserStats
 } from '../controllers/ipController.js';
 import {auth} from '../middlewares/authMiddleware.js';
 
@@ -28,6 +29,11 @@ router.get('/list', getUserIPs);
 // @desc    Get IP statistics for authenticated user
 // @access  Private
 router.get('/stats', getIPStats);
+
+// @route   GET /api/ip/user-stats
+// @desc    Get user profile statistics
+// @access  Private
+router.get('/user-stats', getUserStats);
 
 // @route   GET /api/ip/:id
 // @desc    Get single IP details

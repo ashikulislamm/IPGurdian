@@ -294,7 +294,7 @@ const getIPStats = async (req, res) => {
     const userId = req.user.id;
 
     const stats = await IP.aggregate([
-      { $match: { userId: mongoose.Types.ObjectId(userId) } },
+      { $match: { userId: new mongoose.Types.ObjectId(userId) } },
       {
         $group: {
           _id: null,
@@ -325,7 +325,7 @@ const getIPStats = async (req, res) => {
 
     // Get type breakdown
     const typeStats = await IP.aggregate([
-      { $match: { userId: mongoose.Types.ObjectId(userId) } },
+      { $match: { userId: new mongoose.Types.ObjectId(userId) } },
       {
         $group: {
           _id: "$ipType",
@@ -356,11 +356,74 @@ const getIPStats = async (req, res) => {
   }
 };
 
+// Get user statistics for profile page
+const getUserStats = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    console.log('🔍 Getting user stats for userId:', userId);
+
+    // Get basic IP statistics
+    const stats = await IP.aggregate([
+      { $match: { userId: new mongoose.Types.ObjectId(userId) } },
+      {
+        $group: {
+          _id: null,
+          totalIPs: { $sum: 1 },
+          confirmedIPs: {
+            $sum: { $cond: [{ $eq: ["$status", "confirmed"] }, 1, 0] }
+          },
+          pendingIPs: {
+            $sum: { $cond: [{ $eq: ["$status", "pending"] }, 1, 0] }
+          },
+          failedIPs: {
+            $sum: { $cond: [{ $eq: ["$status", "failed"] }, 1, 0] }
+          }
+        }
+      }
+    ]);
+
+    console.log('📊 Raw stats from database:', stats);
+
+    const result = stats[0] || {
+      totalIPs: 0,
+      confirmedIPs: 0,
+      pendingIPs: 0,
+      failedIPs: 0
+    };
+
+    console.log('📈 Processed result:', result);
+
+    // For now, transferredIPs will be 0 since we don't have transfer functionality yet
+    // This can be updated later when transfer functionality is implemented
+    const transferredIPs = 0;
+
+    const responseData = {
+      success: true,
+      totalIPs: result.totalIPs,
+      confirmedIPs: result.confirmedIPs,
+      pendingIPs: result.pendingIPs,
+      failedIPs: result.failedIPs,
+      transferredIPs: transferredIPs
+    };
+
+    console.log('✅ Sending response:', responseData);
+    res.json(responseData);
+
+  } catch (error) {
+    console.error('Error getting user stats:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve user statistics'
+    });
+  }
+};
+
 export {
   registerIP,
   getUserIPs,
   getIPDetails,
   updateIPStatus,
   deleteIP,
-  getIPStats
+  getIPStats,
+  getUserStats
 };

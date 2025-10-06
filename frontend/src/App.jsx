@@ -8,7 +8,7 @@ import { TermsAndConditions } from "./pages/TermsConditions.jsx";
 import { UserDashboard } from "./pages/Profile.jsx";
 import { IPDetails } from "./pages/IPDetails.jsx";
 import { AuthProvider } from "./Context/AuthContext.jsx";
-import { Web3Provider } from "./Context/Web3Context-simple.jsx";
+import { Web3Provider } from "./Context/Web3Context-private.jsx";
 import "./App.css";
 
 function App() {

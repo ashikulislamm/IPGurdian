@@ -19,8 +19,9 @@ import { motion } from "framer-motion";
 import { ResponsiveNavbar } from "../components/Navbar";
 import { ResponsiveFooter } from "../components/Footer";
 import { AuthContext } from "../Context/AuthContext";
-import { useWeb3 } from "../Context/Web3Context-simple.jsx";
-import WalletConnect from "../components/WalletConnect";
+import { useWeb3 } from "../Context/Web3Context-private.jsx";
+import WalletConnect from "../components/WalletConnect-private.jsx";
+import { BlockchainService } from "../services/blockchainService-private.js";
 import { useNavigate } from "react-router-dom";
 import UserAvatar from "../assets/profile.png";
 
@@ -314,7 +315,7 @@ const SettingsPanel = ({ userData, setUserData, setPopup }) => {
 };
 
 // Enhanced RegisterIPPanel with blockchain integration
-const RegisterIPPanel = ({ setPopup }) => {
+const RegisterIPPanel = ({ setPopup, setRefreshTrigger }) => {
   // Use Web3 context
   const {
     contract,
@@ -420,20 +421,24 @@ const RegisterIPPanel = ({ setPopup }) => {
       return;
     }
 
-    // Check wallet connection (optional for testing)
+    // Check wallet connection (required for blockchain)
     if (!isConnected) {
-      console.log("Wallet not connected - proceeding with mock registration");
-    }
-
-    // Check network (optional for testing)
-    if (isConnected && !isSupportedNetwork()) {
       setPopup({
         show: true,
-        message:
-          "Please switch to a supported network for blockchain registration",
+        message: "Please connect your wallet to register IP on blockchain",
         success: false,
       });
-      // Don't return - allow mock registration to continue
+      return;
+    }
+
+    // Check network (required for private network)
+    if (!isSupportedNetwork(chainId)) {
+      setPopup({
+        show: true,
+        message: "Please switch to IPGuardian Private Network to register IP",
+        success: false,
+      });
+      return;
     }
 
     setIsSubmitting(true);
@@ -444,33 +449,50 @@ const RegisterIPPanel = ({ setPopup }) => {
         ? await generateFileHash(formData.file)
         : null;
 
-      // Mock transaction result for blockchain simulation
-      const mockTx = {
-        transactionHash: `0x${Math.random().toString(16).substring(2, 66)}`,
-        blockNumber: Math.floor(Math.random() * 1000000),
-        gasUsed: "21000",
-        ipId: Math.floor(Math.random() * 1000).toString(),
-      };
+      console.log("🚀 Starting real blockchain registration...");
+      console.log("📊 Network:", chainId);
+      console.log("👛 Account:", account);
 
-      // Prepare IP data for backend
+      // Create blockchain service instance
+      const blockchainService = new BlockchainService(contract, signer);
+
+      // Register IP on blockchain (REAL TRANSACTION!)
+      const blockchainResult = await blockchainService.registerIP({
+        title: formData.title,
+        description: formData.description,
+        category: formData.category,
+      });
+
+      if (!blockchainResult.success) {
+        throw new Error(
+          blockchainResult.error || "Blockchain registration failed"
+        );
+      }
+
+      console.log("✅ Blockchain registration successful!", blockchainResult);
+
+      // Prepare IP data for backend with REAL blockchain data
       const ipData = {
         title: formData.title,
         description: formData.description,
         ipType: formData.ipType,
         category: formData.category,
         tags: formData.tags,
-        creator: account || "demo-address",
-        transactionHash: mockTx.transactionHash,
-        blockNumber: mockTx.blockNumber,
-        gasUsed: mockTx.gasUsed,
-        ipId: mockTx.ipId,
+        creator: account,
+        transactionHash: blockchainResult.transactionHash,
+        blockNumber: blockchainResult.blockNumber,
+        gasUsed: blockchainResult.gasUsed,
+        ipId: blockchainResult.ipId,
+        ipHash: blockchainResult.ipHash,
         fileName: formData.file?.name || null,
         fileSize: formData.file?.size || null,
         fileHash: fileHash,
         isPublic: formData.isPublic,
+        network: "IPGuardian Private Network",
+        chainId: 40404040,
       };
 
-      console.log("Registering IP with data:", ipData);
+      console.log("💾 Saving to database:", ipData);
 
       // Save to backend database
       const token = localStorage.getItem("token");
@@ -486,16 +508,22 @@ const RegisterIPPanel = ({ setPopup }) => {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || "Failed to register IP");
+        throw new Error(result.error || "Failed to save IP to database");
       }
 
-      setBlockchainTx(mockTx);
+      setBlockchainTx(blockchainResult);
 
       setPopup({
         show: true,
-        message: "IP registered successfully and saved to your account!",
+        message:
+          "🎉 IP registered successfully on blockchain and saved to your account!",
         success: true,
       });
+
+      // Trigger stats refresh
+      if (setRefreshTrigger) {
+        setRefreshTrigger(prev => prev + 1);
+      }
 
       // Reset form
       setFormData({
@@ -512,7 +540,7 @@ const RegisterIPPanel = ({ setPopup }) => {
       const fileInput = document.querySelector('input[type="file"]');
       if (fileInput) fileInput.value = "";
     } catch (error) {
-      console.error("Registration error:", error);
+      console.error("❌ Registration error:", error);
       setPopup({
         show: true,
         message: `Failed to register IP: ${error.message}`,
@@ -522,10 +550,10 @@ const RegisterIPPanel = ({ setPopup }) => {
       setIsSubmitting(false);
     }
 
-    // Hide popup after 6 seconds
+    // Hide popup after 8 seconds (longer for blockchain messages)
     setTimeout(() => {
       setPopup({ show: false, message: "", success: true });
-    }, 6000);
+    }, 8000);
   };
 
   // Helper function to generate file hash
@@ -853,7 +881,12 @@ const RegisterIPPanel = ({ setPopup }) => {
 };
 
 // RegisteredIPsPanel Component
-const RegisteredIPsPanel = ({ setActivePanel, setPopup }) => {
+const RegisteredIPsPanel = ({
+  setActivePanel,
+  setPopup,
+  setDeleteConfirm,
+  refreshTrigger,
+}) => {
   const [ips, setIps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
@@ -919,7 +952,7 @@ const RegisteredIPsPanel = ({ setActivePanel, setPopup }) => {
   useEffect(() => {
     fetchIPs();
     fetchStats();
-  }, [filter, searchTerm]);
+  }, [filter, searchTerm, refreshTrigger]);
 
   // View IP details
   const viewIPDetails = async (ipId) => {
@@ -943,40 +976,10 @@ const RegisteredIPsPanel = ({ setActivePanel, setPopup }) => {
 
   // Delete IP
   const deleteIP = async (ipId) => {
-    if (
-      !window.confirm("Are you sure you want to delete this IP registration?")
-    ) {
-      return;
-    }
-
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`http://localhost:5000/api/ip/${ipId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const result = await response.json();
-      if (response.ok) {
-        setPopup({
-          show: true,
-          message: "IP deleted successfully",
-          success: true,
-        });
-        fetchIPs(); // Refresh list
-        fetchStats(); // Refresh stats
-      } else {
-        throw new Error(result.error);
-      }
-    } catch (error) {
-      setPopup({
-        show: true,
-        message: `Failed to delete IP: ${error.message}`,
-        success: false,
-      });
-    }
+    setDeleteConfirm({
+      show: true,
+      ipId: ipId,
+    });
   };
 
   const getStatusColor = (status) => {
@@ -1479,6 +1482,18 @@ export const UserDashboard = () => {
     message: "",
     success: true,
   });
+  const [deleteConfirm, setDeleteConfirm] = useState({
+    show: false,
+    ipId: null,
+  });
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [userStats, setUserStats] = useState({
+    totalIPs: 0,
+    transferredIPs: 0,
+    pendingIPs: 0,
+    approvalRate: 100
+  });
+  const [statsLoading, setStatsLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
 
   const { user, fetchUserProfile, logout, loading } = useContext(AuthContext);
@@ -1530,6 +1545,13 @@ export const UserDashboard = () => {
     }
   }, [user, userData]);
 
+  // Fetch user statistics when component loads and when data changes
+  useEffect(() => {
+    if (isInitialized && userData) {
+      fetchUserStats();
+    }
+  }, [isInitialized, userData, refreshTrigger]);
+
   const handleLogout = () => {
     logout();
     navigate("/");
@@ -1543,6 +1565,80 @@ export const UserDashboard = () => {
       month: "long",
       day: "numeric",
     });
+  };
+
+  // Delete IP confirmation function
+  const confirmDeleteIP = async (ipId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`http://localhost:5000/api/ip/${ipId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        setPopup({
+          show: true,
+          message: "IP deleted successfully",
+          success: true,
+        });
+        // Trigger refresh of the IP list
+        setRefreshTrigger((prev) => prev + 1);
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      setPopup({
+        show: true,
+        message: `Failed to delete IP: ${error.message}`,
+        success: false,
+      });
+    } finally {
+      setDeleteConfirm({ show: false, ipId: null });
+    }
+
+    // Hide popup after 4 seconds
+    setTimeout(() => {
+      setPopup({ show: false, message: "", success: true });
+    }, 4000);
+  };
+
+  // Fetch user statistics
+  const fetchUserStats = async () => {
+    try {
+      setStatsLoading(true);
+      const token = localStorage.getItem("token");
+      console.log("🔄 Fetching user stats...");
+      
+      const response = await fetch("http://localhost:5000/api/ip/user-stats", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const result = await response.json();
+      console.log("📊 User stats response:", response.status, result);
+      
+      if (response.ok && result.success) {
+        const newStats = {
+          totalIPs: result.totalIPs || 0,
+          transferredIPs: result.transferredIPs || 0, 
+          pendingIPs: result.pendingIPs || 0,
+          approvalRate: result.totalIPs > 0 ? Math.round((result.confirmedIPs / result.totalIPs) * 100) : 100
+        };
+        console.log("📈 Setting user stats:", newStats);
+        setUserStats(newStats);
+      } else {
+        console.error("❌ Error in response:", response.status, result);
+      }
+    } catch (error) {
+      console.error("❌ Error fetching user stats:", error);
+    } finally {
+      setStatsLoading(false);
+    }
   };
 
   // Show loading state while initializing or loading
@@ -1652,22 +1748,50 @@ export const UserDashboard = () => {
         </div>
 
         {/* Statistics */}
-        <div className="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-6 text-center bg-[#f3f4fa] p-6 rounded-xl shadow-md">
-          <div>
-            <p className="text-2xl font-bold text-[#2d336b]">0</p>
-            <p className="text-sm text-gray-600">IPs Registered</p>
+        <div className="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-6 text-center bg-gradient-to-r from-[#f3f4fa] to-[#e8f0ff] p-6 rounded-xl shadow-lg border border-[#a9b5df]/20">
+          <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-blue-500">
+            {statsLoading ? (
+              <div className="animate-pulse">
+                <div className="h-8 bg-gray-300 rounded mb-2"></div>
+              </div>
+            ) : (
+              <p className="text-3xl font-bold text-blue-600">{userStats.totalIPs}</p>
+            )}
+            <p className="text-sm font-semibold text-gray-700">IPs Registered</p>
+            <p className="text-xs text-gray-500 mt-1">Total blockchain entries</p>
           </div>
-          <div>
-            <p className="text-2xl font-bold text-[#2d336b]">0</p>
-            <p className="text-sm text-gray-600">IPs Transferred</p>
+          <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-purple-500">
+            {statsLoading ? (
+              <div className="animate-pulse">
+                <div className="h-8 bg-gray-300 rounded mb-2"></div>
+              </div>
+            ) : (
+              <p className="text-3xl font-bold text-purple-600">{userStats.transferredIPs}</p>
+            )}
+            <p className="text-sm font-semibold text-gray-700">IPs Transferred</p>
+            <p className="text-xs text-gray-500 mt-1">Ownership changes</p>
           </div>
-          <div>
-            <p className="text-2xl font-bold text-[#2d336b]">0</p>
-            <p className="text-sm text-gray-600">Pending Reviews</p>
+          <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-yellow-500">
+            {statsLoading ? (
+              <div className="animate-pulse">
+                <div className="h-8 bg-gray-300 rounded mb-2"></div>
+              </div>
+            ) : (
+              <p className="text-3xl font-bold text-yellow-600">{userStats.pendingIPs}</p>
+            )}
+            <p className="text-sm font-semibold text-gray-700">Pending Reviews</p>
+            <p className="text-xs text-gray-500 mt-1">Awaiting confirmation</p>
           </div>
-          <div>
-            <p className="text-2xl font-bold text-[#2d336b]">100%</p>
-            <p className="text-sm text-gray-600">Approval Rate</p>
+          <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-green-500">
+            {statsLoading ? (
+              <div className="animate-pulse">
+                <div className="h-8 bg-gray-300 rounded mb-2"></div>
+              </div>
+            ) : (
+              <p className="text-3xl font-bold text-green-600">{userStats.approvalRate}%</p>
+            )}
+            <p className="text-sm font-semibold text-gray-700">Success Rate</p>
+            <p className="text-xs text-gray-500 mt-1">Confirmed vs total</p>
           </div>
         </div>
       </motion.div>
@@ -1680,7 +1804,12 @@ export const UserDashboard = () => {
       />
     ),
     ips: (
-      <RegisteredIPsPanel setActivePanel={setActivePanel} setPopup={setPopup} />
+      <RegisteredIPsPanel
+        setActivePanel={setActivePanel}
+        setPopup={setPopup}
+        setDeleteConfirm={setDeleteConfirm}
+        refreshTrigger={refreshTrigger}
+      />
     ),
     history: (
       <motion.div
@@ -1727,7 +1856,7 @@ export const UserDashboard = () => {
         </div>
       </motion.div>
     ),
-    registerip: <RegisterIPPanel setPopup={setPopup} />,
+    registerip: <RegisterIPPanel setPopup={setPopup} setRefreshTrigger={setRefreshTrigger} />,
   };
 
   return (
@@ -1793,6 +1922,58 @@ export const UserDashboard = () => {
           } text-white`}
         >
           {popup.message}
+        </div>
+      )}
+
+      {/* Delete Confirmation Popup */}
+      {deleteConfirm.show && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 transform transition-all duration-300 scale-100">
+            <div className="text-center">
+              {/* Icon */}
+              <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-6">
+                <svg
+                  className="h-8 w-8 text-red-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth="2"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
+                  />
+                </svg>
+              </div>
+
+              {/* Content */}
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                Delete IP Registration
+              </h3>
+              <p className="text-gray-500 mb-8">
+                Are you sure you want to delete this IP registration? This
+                action cannot be undone and will permanently remove the IP from
+                the blockchain.
+              </p>
+
+              {/* Buttons */}
+              <div className="flex gap-4 justify-center">
+                <button
+                  onClick={() => setDeleteConfirm({ show: false, ipId: null })}
+                  className="px-6 py-3 bg-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-300 transition-colors duration-200 flex-1"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => confirmDeleteIP(deleteConfirm.ipId)}
+                  className="px-6 py-3 bg-red-600 text-white rounded-xl font-medium hover:bg-red-700 transition-colors duration-200 flex-1 shadow-lg"
+                >
+                  Delete IP
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
