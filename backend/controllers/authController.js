@@ -51,10 +51,91 @@ export const loginUser = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        phone: user.phone,
+        country: user.country,
+        address: user.address,
+        dateOfBirth: user.dateOfBirth,
+        bio: user.bio || "",
       },
     });
   } catch (err) {
     console.error("Login Error:", err.message);
+    res.status(500).json({ msg: "Server error" });
+  }
+};
+
+// Get user profile
+export const getUserProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+
+    res.status(200).json({
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        country: user.country,
+        address: user.address,
+        dateOfBirth: user.dateOfBirth,
+        bio: user.bio || "",
+      },
+    });
+  } catch (err) {
+    console.error("Get Profile Error:", err.message);
+    res.status(500).json({ msg: "Server error" });
+  }
+};
+
+// Update user profile
+export const updateUserProfile = async (req, res) => {
+  try {
+    const { name, email, phone, country, address, dateOfBirth, bio } = req.body;
+
+    // Check if email is being changed and if it already exists
+    if (email && email !== req.user.email) {
+      const existingUser = await User.findOne({ email });
+      if (existingUser && existingUser._id.toString() !== req.user.id) {
+        return res.status(400).json({ msg: "Email already exists" });
+      }
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user.id,
+      {
+        ...(name && { name }),
+        ...(email && { email }),
+        ...(phone && { phone }),
+        ...(country && { country }),
+        ...(address && { address }),
+        ...(dateOfBirth && { dateOfBirth }),
+        ...(bio !== undefined && { bio }), // Allow empty string for bio
+      },
+      { new: true }
+    ).select("-password");
+
+    if (!updatedUser) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+
+    res.status(200).json({
+      msg: "Profile updated successfully",
+      user: {
+        id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        phone: updatedUser.phone,
+        country: updatedUser.country,
+        address: updatedUser.address,
+        dateOfBirth: updatedUser.dateOfBirth,
+        bio: updatedUser.bio || "",
+      },
+    });
+  } catch (err) {
+    console.error("Update Profile Error:", err.message);
     res.status(500).json({ msg: "Server error" });
   }
 };

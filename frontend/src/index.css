@@ -40,6 +40,24 @@ button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
+
+/* Override default button styles for dropdown menu */
+.dropdown-menu-item {
+  border: none !important;
+  outline: none !important;
+  background: transparent !important;
+  font-family: inherit !important;
+  font-size: inherit !important;
+  font-weight: inherit !important;
+}
+.dropdown-menu-item:hover {
+  border: none !important;
+  outline: none !important;
+}
+.dropdown-menu-item:focus {
+  border: none !important;
+  outline: none !important;
+}
 .marked {
   color: var(--Accent-color);
 }
@@ -123,7 +141,6 @@ footer .footer-social a:hover {
     margin-top: -120px;
   }
 }
-
 
 @keyframes fade-in-down {
   from {

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   UserIcon,
   Cog6ToothIcon,
@@ -6,10 +6,14 @@ import {
   ArrowPathIcon,
   ArrowRightOnRectangleIcon,
   Bars3Icon,
+  PlusIcon,
+  DocumentPlusIcon,
 } from "@heroicons/react/24/outline";
 import { motion } from "framer-motion";
 import { ResponsiveNavbar } from "../components/Navbar";
 import { ResponsiveFooter } from "../components/Footer";
+import { AuthContext } from "../Context/AuthContext";
+import { useNavigate } from "react-router-dom";
 import UserAvatar from "../assets/profile.png";
 
 const menuItems = [
@@ -22,6 +26,11 @@ const menuItems = [
     name: "Settings",
     icon: <Cog6ToothIcon className="h-5 w-5" />,
     key: "settings",
+  },
+  {
+    name: "Register New IP",
+    icon: <DocumentPlusIcon className="h-5 w-5" />,
+    key: "registerip",
   },
   {
     name: "Registered IPs",
@@ -40,12 +49,620 @@ const menuItems = [
   },
 ];
 
+const SettingsPanel = ({ userData, setUserData, setPopup }) => {
+  const { updateUserProfile, loading } = useContext(AuthContext);
+  const [formData, setFormData] = useState({
+    name: userData?.name || "",
+    email: userData?.email || "",
+    phone: userData?.phone || "",
+    country: userData?.country || "",
+    address: userData?.address || "",
+    dateOfBirth: userData?.dateOfBirth
+      ? userData.dateOfBirth.split("T")[0]
+      : "",
+    bio: userData?.bio || "",
+  });
+
+  // Update form data when userData changes
+  useEffect(() => {
+    if (userData) {
+      setFormData({
+        name: userData.name || "",
+        email: userData.email || "",
+        phone: userData.phone || "",
+        country: userData.country || "",
+        address: userData.address || "",
+        dateOfBirth: userData.dateOfBirth
+          ? userData.dateOfBirth.split("T")[0]
+          : "",
+        bio: userData.bio || "",
+      });
+    }
+  }, [userData]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    // Limit bio to 500 characters
+    if (name === "bio" && value.length > 500) {
+      return;
+    }
+
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const result = await updateUserProfile(formData);
+
+    if (result.success) {
+      setUserData(result.data);
+      setPopup({
+        show: true,
+        message: result.message || "Profile updated successfully!",
+        success: true,
+      });
+    } else {
+      setPopup({
+        show: true,
+        message: result.error || "Failed to update profile",
+        success: false,
+      });
+    }
+
+    // Hide popup after 4 seconds
+    setTimeout(() => {
+      setPopup({ show: false, message: "", success: true });
+    }, 4000);
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.3 }}
+      className="w-full max-w-4xl mx-auto bg-white p-8 rounded-2xl shadow-md"
+    >
+      <h2 className="text-3xl font-bold mb-6 text-[#2d336b]">
+        Edit Profile Settings
+      </h2>
+
+      {/* Avatar Section */}
+      <div className="flex items-center mb-6 gap-6">
+        <img
+          src={UserAvatar}
+          alt="User Avatar"
+          className="w-20 h-20 rounded-full object-cover border-2 border-[#a9b5df]"
+        />
+        <div>
+          <label className="block mb-1 text-sm font-semibold text-[#2d336b]">
+            Change Avatar
+          </label>
+          <input
+            type="file"
+            accept="image/*"
+            className="text-sm text-[#2d336b] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-white file:bg-[#7886c7] hover:file:bg-[#2d336b]"
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            Avatar upload coming soon
+          </p>
+        </div>
+      </div>
+
+      {/* Edit Form */}
+      <form
+        onSubmit={handleSubmit}
+        className="grid grid-cols-1 md:grid-cols-2 gap-6 text-[#2d336b]"
+      >
+        <div>
+          <label className="block text-sm font-semibold mb-1" htmlFor="name">
+            Full Name
+          </label>
+          <input
+            id="name"
+            name="name"
+            type="text"
+            value={formData.name}
+            onChange={handleChange}
+            placeholder="Enter your full name"
+            className="w-full px-4 py-2 border border-[#a9b5df] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7886c7]"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold mb-1" htmlFor="email">
+            Email
+          </label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            value={formData.email}
+            onChange={handleChange}
+            placeholder="Enter your email"
+            className="w-full px-4 py-2 border border-[#a9b5df] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7886c7]"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold mb-1" htmlFor="phone">
+            Phone
+          </label>
+          <input
+            id="phone"
+            name="phone"
+            type="tel"
+            value={formData.phone}
+            onChange={handleChange}
+            placeholder="Enter your phone number"
+            className="w-full px-4 py-2 border border-[#a9b5df] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7886c7]"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold mb-1" htmlFor="country">
+            Country
+          </label>
+          <input
+            id="country"
+            name="country"
+            type="text"
+            value={formData.country}
+            onChange={handleChange}
+            placeholder="Enter your country"
+            className="w-full px-4 py-2 border border-[#a9b5df] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7886c7]"
+            required
+          />
+        </div>
+
+        <div className="md:col-span-2">
+          <label className="block text-sm font-semibold mb-1" htmlFor="address">
+            Address
+          </label>
+          <input
+            id="address"
+            name="address"
+            type="text"
+            value={formData.address}
+            onChange={handleChange}
+            placeholder="Enter your address"
+            className="w-full px-4 py-2 border border-[#a9b5df] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7886c7]"
+            required
+          />
+        </div>
+
+        <div className="md:col-span-2">
+          <label
+            className="block text-sm font-semibold mb-1"
+            htmlFor="dateOfBirth"
+          >
+            Date of Birth
+          </label>
+          <input
+            id="dateOfBirth"
+            name="dateOfBirth"
+            type="date"
+            value={formData.dateOfBirth}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border border-[#a9b5df] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7886c7]"
+            required
+          />
+        </div>
+
+        <div className="md:col-span-2">
+          <label className="block text-sm font-semibold mb-1" htmlFor="bio">
+            Bio / About Me
+          </label>
+          <textarea
+            id="bio"
+            name="bio"
+            rows={4}
+            value={formData.bio}
+            onChange={handleChange}
+            placeholder="Tell us about yourself, your work, and your interests..."
+            className="w-full px-4 py-2 border border-[#a9b5df] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7886c7] resize-vertical"
+          />
+          <div className="flex justify-between items-center mt-1">
+            <p className="text-xs text-gray-500">
+              This will be displayed on your profile page.
+            </p>
+            <p
+              className={`text-xs ${
+                formData.bio.length > 450
+                  ? "text-orange-500"
+                  : formData.bio.length === 500
+                  ? "text-red-500"
+                  : "text-gray-500"
+              }`}
+            >
+              {formData.bio.length}/500
+            </p>
+          </div>
+        </div>
+
+        <div className="md:col-span-2">
+          <button
+            type="submit"
+            disabled={loading}
+            className={`w-full font-semibold py-3 rounded-lg transition-all ${
+              loading
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-[#7886c7] hover:bg-[#2d336b]"
+            } text-white`}
+          >
+            {loading ? "Updating..." : "Save Changes"}
+          </button>
+        </div>
+      </form>
+    </motion.div>
+  );
+};
+
+const RegisterIPPanel = ({ setPopup }) => {
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    ipType: "copyright",
+    category: "",
+    tags: "",
+    file: null,
+    isPublic: false,
+  });
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData({
+      ...formData,
+      [name]: type === "checkbox" ? checked : value,
+    });
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        setPopup({
+          show: true,
+          message: "File size must be less than 10MB",
+          success: false,
+        });
+        return;
+      }
+      setFormData({ ...formData, file });
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    // Simulate API call for now
+    try {
+      // This would be replaced with actual API call
+      setTimeout(() => {
+        setPopup({
+          show: true,
+          message: "IP Registration submitted successfully! (Demo mode)",
+          success: true,
+        });
+        setLoading(false);
+        // Reset form
+        setFormData({
+          title: "",
+          description: "",
+          ipType: "copyright",
+          category: "",
+          tags: "",
+          file: null,
+          isPublic: false,
+        });
+      }, 2000);
+    } catch (error) {
+      setLoading(false);
+      setPopup({
+        show: true,
+        message: "Failed to register IP. Please try again.",
+        success: false,
+      });
+    }
+
+    // Hide popup after 4 seconds
+    setTimeout(() => {
+      setPopup({ show: false, message: "", success: true });
+    }, 6000);
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.3 }}
+      className="w-full max-w-4xl mx-auto bg-white p-8 rounded-2xl shadow-md"
+    >
+      <h2 className="text-3xl font-bold mb-6 text-[#2d336b]">
+        Register New Intellectual Property
+      </h2>
+
+      <form onSubmit={handleSubmit} className="space-y-6 text-[#2d336b]">
+        {/* IP Title */}
+        <div>
+          <label className="block text-sm font-semibold mb-2" htmlFor="title">
+            IP Title *
+          </label>
+          <input
+            id="title"
+            name="title"
+            type="text"
+            value={formData.title}
+            onChange={handleChange}
+            placeholder="Enter the title of your intellectual property"
+            className="w-full px-4 py-3 border border-[#a9b5df] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7886c7]"
+            required
+          />
+        </div>
+
+        {/* IP Type */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-semibold mb-2" htmlFor="ipType">
+              IP Type *
+            </label>
+            <select
+              id="ipType"
+              name="ipType"
+              value={formData.ipType}
+              onChange={handleChange}
+              className="w-full px-4 py-3 border border-[#a9b5df] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7886c7]"
+              required
+            >
+              <option value="copyright">Copyright</option>
+              <option value="trademark">Trademark</option>
+              <option value="patent">Patent</option>
+              <option value="design">Design</option>
+              <option value="trade-secret">Trade Secret</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold mb-2" htmlFor="category">
+              Category
+            </label>
+            <input
+              id="category"
+              name="category"
+              type="text"
+              value={formData.category}
+              onChange={handleChange}
+              placeholder="e.g., Software, Music, Art, Technology"
+              className="w-full px-4 py-3 border border-[#a9b5df] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7886c7]"
+            />
+          </div>
+        </div>
+
+        {/* Description */}
+        <div>
+          <label className="block text-sm font-semibold mb-2" htmlFor="description">
+            Description *
+          </label>
+          <textarea
+            id="description"
+            name="description"
+            rows={4}
+            value={formData.description}
+            onChange={handleChange}
+            placeholder="Provide a detailed description of your intellectual property..."
+            className="w-full px-4 py-3 border border-[#a9b5df] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7886c7] resize-vertical"
+            required
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            Minimum 50 characters required
+          </p>
+        </div>
+
+        {/* File Upload */}
+        <div>
+          <label className="block text-sm font-semibold mb-2" htmlFor="file">
+            Upload File (Optional)
+          </label>
+          <input
+            id="file"
+            name="file"
+            type="file"
+            onChange={handleFileChange}
+            accept=".pdf,.doc,.docx,.jpg,.png,.gif,.mp3,.mp4,.zip"
+            className="w-full px-4 py-3 border border-[#a9b5df] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7886c7] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-white file:bg-[#7886c7] hover:file:bg-[#2d336b]"
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            Supported formats: PDF, DOC, DOCX, JPG, PNG, GIF, MP3, MP4, ZIP (Max 10MB)
+          </p>
+        </div>
+
+        {/* Tags */}
+        <div>
+          <label className="block text-sm font-semibold mb-2" htmlFor="tags">
+            Tags
+          </label>
+          <input
+            id="tags"
+            name="tags"
+            type="text"
+            value={formData.tags}
+            onChange={handleChange}
+            placeholder="Enter tags separated by commas (e.g., innovation, technology, creative)"
+            className="w-full px-4 py-3 border border-[#a9b5df] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7886c7]"
+          />
+        </div>
+
+        {/* Public/Private Toggle */}
+        <div className="flex items-center gap-3">
+          <input
+            id="isPublic"
+            name="isPublic"
+            type="checkbox"
+            checked={formData.isPublic}
+            onChange={handleChange}
+            className="w-4 h-4 text-[#7886c7] border-[#a9b5df] rounded focus:ring-2 focus:ring-[#7886c7]"
+          />
+          <label htmlFor="isPublic" className="text-sm font-medium">
+            Make this IP publicly visible in the marketplace
+          </label>
+        </div>
+
+        {/* Submit Button */}
+        <div className="pt-4">
+          <button
+            type="submit"
+            disabled={loading}
+            className={`w-full font-semibold py-3 rounded-lg transition-all ${
+              loading
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-[#7886c7] hover:bg-[#2d336b]"
+            } text-white`}
+          >
+            {loading ? "Registering IP..." : "Register Intellectual Property"}
+          </button>
+        </div>
+
+        {/* Disclaimer */}
+        <div className="bg-[#f9faff] p-4 rounded-lg border border-[#a9b5df]">
+          <p className="text-xs text-gray-600">
+            <strong>Note:</strong> By registering your IP on IPGuardian, you are creating a 
+            blockchain-backed proof of creation. This registration does not replace official 
+            IP registration with government authorities but provides additional protection 
+            and verification.
+          </p>
+        </div>
+      </form>
+    </motion.div>
+  );
+};
+
 export const UserDashboard = () => {
   const [activePanel, setActivePanel] = useState("user");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [userData, setUserData] = useState(null);
+  const [popup, setPopup] = useState({
+    show: false,
+    message: "",
+    success: true,
+  });
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  const { user, fetchUserProfile, logout, loading } = useContext(AuthContext);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check if user authentication has been initialized
+    const token = localStorage.getItem("token");
+
+    if (!token && !user) {
+      navigate("/login");
+      return;
+    }
+
+    // If we have a token but no user data, or if we have user data, set it up
+    if (user) {
+      setUserData(user);
+      setIsInitialized(true);
+    } else if (token) {
+      // We have a token but no user data in context, try to fetch profile
+      const initializeProfile = async () => {
+        const result = await fetchUserProfile();
+        if (result.success) {
+          setUserData(result.data);
+        } else {
+          console.error("Failed to fetch user data:", result.error);
+          // If token is invalid, logout and redirect
+          if (
+            result.error.includes("Token") ||
+            result.error.includes("authorization")
+          ) {
+            logout();
+            navigate("/login");
+          }
+        }
+        setIsInitialized(true);
+      };
+
+      initializeProfile();
+    } else {
+      setIsInitialized(true);
+    }
+  }, [user, navigate]);
+
+  // Separate effect for fetching profile when needed
+  useEffect(() => {
+    if (user && !userData) {
+      setUserData(user);
+    }
+  }, [user, userData]);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "Not specified";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  // Show loading state while initializing or loading
+  if (loading || !isInitialized) {
+    return (
+      <>
+        <ResponsiveNavbar />
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#7886c7] mx-auto"></div>
+            <p className="mt-4 text-[#2d336b]">Loading profile...</p>
+          </div>
+        </div>
+        <ResponsiveFooter />
+      </>
+    );
+  }
+
+  // If no user data after initialization, show message
+  if (!userData) {
+    return (
+      <>
+        <ResponsiveNavbar />
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <p className="text-[#2d336b] text-lg">No user data available</p>
+            <p className="text-gray-600 mt-2">
+              Please login to access your profile
+            </p>
+            <button
+              onClick={() => navigate("/login")}
+              className="mt-4 bg-[#7886c7] text-white px-4 py-2 rounded-lg hover:bg-[#2d336b] transition-all"
+            >
+              Go to Login
+            </button>
+          </div>
+        </div>
+        <ResponsiveFooter />
+      </>
+    );
+  }
 
   const avatar = UserAvatar;
-  const username = "John Doe";
+  const username = userData?.name || "User";
 
   const panels = {
     user: (
@@ -67,34 +684,44 @@ export const UserDashboard = () => {
           <div className="flex-1 space-y-2">
             <h2 className="text-3xl font-bold text-[#2d336b]">About Me</h2>
             <p className="text-[#ec4d4d] font-medium">
-              IPGuardian Creator based in Bangladesh
+              IPGuardian User from {userData.country || "Unknown Location"}
             </p>
-            <p className="text-gray-600 leading-relaxed">
-              I build secure and decentralized solutions for protecting
-              intellectual property. My mission is to empower creators through
-              robust blockchain verification and seamless licensing processes.
-            </p>
+            <div className="text-gray-600 leading-relaxed">
+              {userData.bio ? (
+                <p>{userData.bio}</p>
+              ) : (
+                <p className="italic text-gray-500">
+                  No bio added yet. You can add your bio through the Settings
+                  panel to tell others about yourself and your work.
+                </p>
+              )}
+            </div>
 
             {/* Info Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 mt-6 gap-y-4 text-sm text-[#2d336b]">
               <div>
-                <span className="font-semibold">Full Name:</span> John Doe
+                <span className="font-semibold">Full Name:</span>{" "}
+                {userData.name || "Not specified"}
               </div>
               <div>
-                <span className="font-semibold">Email:</span> john@example.com
+                <span className="font-semibold">Email:</span>{" "}
+                {userData.email || "Not specified"}
               </div>
               <div>
-                <span className="font-semibold">Phone:</span> +1234567890
+                <span className="font-semibold">Phone:</span>{" "}
+                {userData.phone || "Not specified"}
               </div>
               <div>
-                <span className="font-semibold">Country:</span> United States
+                <span className="font-semibold">Country:</span>{" "}
+                {userData.country || "Not specified"}
               </div>
               <div>
-                <span className="font-semibold">Date of Birth:</span> 4th April
-                1998
+                <span className="font-semibold">Date of Birth:</span>{" "}
+                {formatDate(userData.dateOfBirth)}
               </div>
               <div>
-                <span className="font-semibold">Address:</span> California, USA
+                <span className="font-semibold">Address:</span>{" "}
+                {userData.address || "Not specified"}
               </div>
             </div>
           </div>
@@ -122,140 +749,11 @@ export const UserDashboard = () => {
       </motion.div>
     ),
     settings: (
-      <motion.div
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.3 }}
-        className="w-full max-w-4xl mx-auto bg-white p-8 rounded-2xl shadow-md"
-      >
-        <h2 className="text-3xl font-bold mb-6 text-[#2d336b]">
-          Edit Profile Settings
-        </h2>
-
-        {/* Avatar Section */}
-        <div className="flex items-center mb-6 gap-6">
-          <img
-            src={UserAvatar}
-            alt="User Avatar"
-            className="w-20 h-20 rounded-full object-cover border-2 border-[#a9b5df]"
-          />
-          <div>
-            <label className="block mb-1 text-sm font-semibold text-[#2d336b]">
-              Change Avatar
-            </label>
-            <input
-              type="file"
-              accept="image/*"
-              className="text-sm text-[#2d336b] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-white file:bg-[#7886c7] hover:file:bg-[#2d336b]"
-            />
-          </div>
-        </div>
-
-        {/* Edit Form */}
-        <form className="grid grid-cols-1 md:grid-cols-2 gap-6 text-[#2d336b]">
-          <div>
-            <label
-              className="block text-sm font-semibold mb-1"
-              htmlFor="fullName"
-            >
-              Full Name
-            </label>
-            <input
-              id="fullName"
-              type="text"
-              placeholder="John Doe"
-              className="w-full px-4 py-2 border border-[#a9b5df] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7886c7]"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold mb-1" htmlFor="email">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              placeholder="john@example.com"
-              className="w-full px-4 py-2 border border-[#a9b5df] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7886c7]"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold mb-1" htmlFor="phone">
-              Phone
-            </label>
-            <input
-              id="phone"
-              type="tel"
-              placeholder="+1234567890"
-              className="w-full px-4 py-2 border border-[#a9b5df] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7886c7]"
-            />
-          </div>
-
-          <div>
-            <label
-              className="block text-sm font-semibold mb-1"
-              htmlFor="country"
-            >
-              Country
-            </label>
-            <input
-              id="country"
-              type="text"
-              placeholder="United States"
-              className="w-full px-4 py-2 border border-[#a9b5df] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7886c7]"
-            />
-          </div>
-
-          <div className="md:col-span-2">
-            <label
-              className="block text-sm font-semibold mb-1"
-              htmlFor="address"
-            >
-              Address
-            </label>
-            <input
-              id="address"
-              type="text"
-              placeholder="California, USA"
-              className="w-full px-4 py-2 border border-[#a9b5df] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7886c7]"
-            />
-          </div>
-
-          <div className="md:col-span-2">
-            <label className="block text-sm font-semibold mb-1" htmlFor="dob">
-              Date of Birth
-            </label>
-            <input
-              id="dob"
-              type="date"
-              className="w-full px-4 py-2 border border-[#a9b5df] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7886c7]"
-            />
-          </div>
-
-          {/* Bio Section */}
-          <div className="md:col-span-2">
-            <label className="block text-sm font-semibold mb-1" htmlFor="bio">
-              Bio / Description
-            </label>
-            <textarea
-              id="bio"
-              rows={4}
-              placeholder="Tell us something about yourself..."
-              className="w-full px-4 py-2 border border-[#a9b5df] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7886c7]"
-            ></textarea>
-          </div>
-
-          <div className="md:col-span-2">
-            <button
-              type="submit"
-              className="w-full bg-[#7886c7] text-white font-semibold py-3 rounded-lg hover:bg-[#2d336b] transition-all"
-            >
-              Save Changes
-            </button>
-          </div>
-        </form>
-      </motion.div>
+      <SettingsPanel
+        userData={userData}
+        setUserData={setUserData}
+        setPopup={setPopup}
+      />
     ),
     ips: (
       <motion.div
@@ -319,15 +817,31 @@ export const UserDashboard = () => {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3 }}
+        className="text-center p-8"
       >
-        <h2 className="text-2xl font-bold mb-4 text-center text-[#2d336b]">
-          You have been logged out.
+        <h2 className="text-2xl font-bold mb-4 text-[#2d336b]">
+          Are you sure you want to logout?
         </h2>
-        <p className="text-center text-[#7886c7]">
-          Redirecting to login page...
+        <p className="text-[#7886c7] mb-6">
+          You will need to login again to access your profile.
         </p>
+        <div className="flex gap-4 justify-center">
+          <button
+            onClick={handleLogout}
+            className="bg-[#ec4d4d] text-white px-6 py-2 rounded-lg hover:bg-red-600 transition-all"
+          >
+            Yes, Logout
+          </button>
+          <button
+            onClick={() => setActivePanel("user")}
+            className="bg-[#7886c7] text-white px-6 py-2 rounded-lg hover:bg-[#2d336b] transition-all"
+          >
+            Cancel
+          </button>
+        </div>
       </motion.div>
     ),
+    registerip: <RegisterIPPanel setPopup={setPopup} />,
   };
 
   return (
@@ -384,6 +898,18 @@ export const UserDashboard = () => {
           {panels[activePanel]}
         </main>
       </div>
+
+      {/* Popup */}
+      {popup.show && (
+        <div
+          className={`fixed top-6 right-6 px-4 py-3 rounded-lg shadow-lg z-50 transition-all duration-300 ${
+            popup.success ? "bg-green-500" : "bg-red-500"
+          } text-white`}
+        >
+          {popup.message}
+        </div>
+      )}
+
       <ResponsiveFooter />
     </>
   );

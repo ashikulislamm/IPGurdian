@@ -1,14 +1,15 @@
-import React, { useState } from "react";
-import axios from "axios";
+import React, { useState, useContext } from "react";
 import LoginPicture from "../assets/Loginillustration.jpg";
 import { ResponsiveNavbar } from "../components/Navbar.jsx";
 import { ResponsiveFooter } from "../components/Footer.jsx";
 import { Link, useNavigate } from "react-router-dom";
+import { AuthContext } from "../Context/AuthContext.jsx";
 
 export const LoginForm = () => {
   const [form, setForm] = useState({ email: "", password: "" });
   const [popup, setPopup] = useState({ show: false, message: "", success: true });
 
+  const { login } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -17,21 +18,19 @@ export const LoginForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const res = await axios.post("http://localhost:5000/api/auth/login", form);
-
-      // Optionally store token in localStorage
-      localStorage.setItem("token", res.data.token);
+    
+    const result = await login(form.email, form.password);
+    
+    if (result.success) {
       setPopup({ show: true, message: "Login successful!", success: true });
-
       setTimeout(() => {
         setPopup({ show: false, message: "", success: true });
-        navigate("/dashboard");
+        navigate("/profile");
       }, 2000);
-    } catch (err) {
+    } else {
       setPopup({
         show: true,
-        message: err.response?.data?.msg || "Login failed",
+        message: result.error,
         success: false,
       });
       setTimeout(() => setPopup({ show: false, message: "", success: true }), 4000);

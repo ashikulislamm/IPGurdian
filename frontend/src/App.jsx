@@ -24,7 +24,7 @@ function App() {
               path="/terms-and-conditions"
               element={<TermsAndConditions />}
             />
-            <Route path="/dashboard" element={<UserDashboard />} />
+            <Route path="/profile" element={<UserDashboard />} />
             <Route path="/ip-details/:id" element={<IPDetails />} />
           </Routes>
         </Router>
