@@ -316,7 +316,14 @@ const SettingsPanel = ({ userData, setUserData, setPopup }) => {
 // Enhanced RegisterIPPanel with blockchain integration
 const RegisterIPPanel = ({ setPopup }) => {
   // Use Web3 context
-  const { contract, signer, isConnected, account, chainId, isSupportedNetwork } = useWeb3();
+  const {
+    contract,
+    signer,
+    isConnected,
+    account,
+    chainId,
+    isSupportedNetwork,
+  } = useWeb3();
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -418,11 +425,12 @@ const RegisterIPPanel = ({ setPopup }) => {
       console.log("Wallet not connected - proceeding with mock registration");
     }
 
-    // Check network (optional for testing) 
+    // Check network (optional for testing)
     if (isConnected && !isSupportedNetwork()) {
       setPopup({
         show: true,
-        message: "Please switch to a supported network for blockchain registration",
+        message:
+          "Please switch to a supported network for blockchain registration",
         success: false,
       });
       // Don't return - allow mock registration to continue
@@ -432,8 +440,10 @@ const RegisterIPPanel = ({ setPopup }) => {
 
     try {
       // Generate file hash if file is provided
-      const fileHash = formData.file ? await generateFileHash(formData.file) : null;
-      
+      const fileHash = formData.file
+        ? await generateFileHash(formData.file)
+        : null;
+
       // Mock transaction result for blockchain simulation
       const mockTx = {
         transactionHash: `0x${Math.random().toString(16).substring(2, 66)}`,
@@ -449,7 +459,7 @@ const RegisterIPPanel = ({ setPopup }) => {
         ipType: formData.ipType,
         category: formData.category,
         tags: formData.tags,
-        creator: account || 'demo-address',
+        creator: account || "demo-address",
         transactionHash: mockTx.transactionHash,
         blockNumber: mockTx.blockNumber,
         gasUsed: mockTx.gasUsed,
@@ -457,26 +467,26 @@ const RegisterIPPanel = ({ setPopup }) => {
         fileName: formData.file?.name || null,
         fileSize: formData.file?.size || null,
         fileHash: fileHash,
-        isPublic: formData.isPublic
+        isPublic: formData.isPublic,
       };
 
       console.log("Registering IP with data:", ipData);
 
       // Save to backend database
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/ip/register', {
-        method: 'POST',
+      const token = localStorage.getItem("token");
+      const response = await fetch("http://localhost:5000/api/ip/register", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(ipData)
+        body: JSON.stringify(ipData),
       });
 
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to register IP');
+        throw new Error(result.error || "Failed to register IP");
       }
 
       setBlockchainTx(mockTx);
@@ -501,7 +511,6 @@ const RegisterIPPanel = ({ setPopup }) => {
       // Clear file input
       const fileInput = document.querySelector('input[type="file"]');
       if (fileInput) fileInput.value = "";
-
     } catch (error) {
       console.error("Registration error:", error);
       setPopup({
@@ -525,9 +534,11 @@ const RegisterIPPanel = ({ setPopup }) => {
       const reader = new FileReader();
       reader.onload = async (event) => {
         const arrayBuffer = event.target.result;
-        const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
+        const hashBuffer = await crypto.subtle.digest("SHA-256", arrayBuffer);
         const hashArray = Array.from(new Uint8Array(hashBuffer));
-        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        const hashHex = hashArray
+          .map((b) => b.toString(16).padStart(2, "0"))
+          .join("");
         resolve(hashHex);
       };
       reader.readAsArrayBuffer(file);
@@ -777,14 +788,15 @@ const RegisterIPPanel = ({ setPopup }) => {
               <div className="text-sm text-amber-800">
                 <p className="font-medium mb-1">Wallet Connection Required</p>
                 <p>
-                  Please connect your MetaMask wallet to register your IP on the blockchain.
-                  This ensures immutable proof of ownership and creation timestamp.
+                  Please connect your MetaMask wallet to register your IP on the
+                  blockchain. This ensures immutable proof of ownership and
+                  creation timestamp.
                 </p>
               </div>
             </div>
           </div>
         )}
-        
+
         {isConnected && !isSupportedNetwork() && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
             <div className="flex items-start space-x-3">
@@ -792,8 +804,8 @@ const RegisterIPPanel = ({ setPopup }) => {
               <div className="text-sm text-red-800">
                 <p className="font-medium mb-1">Unsupported Network</p>
                 <p>
-                  Please switch to a supported network (Ethereum Mainnet, Goerli, or Sepolia) 
-                  to register your IP on the blockchain.
+                  Please switch to a supported network (Ethereum Mainnet,
+                  Goerli, or Sepolia) to register your IP on the blockchain.
                 </p>
               </div>
             </div>
@@ -844,8 +856,8 @@ const RegisterIPPanel = ({ setPopup }) => {
 const RegisteredIPsPanel = ({ setActivePanel, setPopup }) => {
   const [ips, setIps] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [filter, setFilter] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
   const [selectedIP, setSelectedIP] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
   const [stats, setStats] = useState(null);
@@ -854,29 +866,32 @@ const RegisteredIPsPanel = ({ setActivePanel, setPopup }) => {
   const fetchIPs = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      
+      const token = localStorage.getItem("token");
+
       const params = new URLSearchParams({
-        status: filter === 'all' ? '' : filter,
+        status: filter === "all" ? "" : filter,
         search: searchTerm,
-        limit: 50
+        limit: 50,
       });
 
-      const response = await fetch(`http://localhost:5000/api/ip/list?${params}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
+      const response = await fetch(
+        `http://localhost:5000/api/ip/list?${params}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-      });
+      );
 
       const result = await response.json();
 
       if (response.ok) {
         setIps(result.data.ips);
       } else {
-        console.error('Error fetching IPs:', result.error);
+        console.error("Error fetching IPs:", result.error);
       }
     } catch (error) {
-      console.error('Error fetching IPs:', error);
+      console.error("Error fetching IPs:", error);
     } finally {
       setLoading(false);
     }
@@ -885,11 +900,11 @@ const RegisteredIPsPanel = ({ setActivePanel, setPopup }) => {
   // Fetch IP statistics
   const fetchStats = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/ip/stats', {
+      const token = localStorage.getItem("token");
+      const response = await fetch("http://localhost:5000/api/ip/stats", {
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       const result = await response.json();
@@ -897,7 +912,7 @@ const RegisteredIPsPanel = ({ setActivePanel, setPopup }) => {
         setStats(result.data);
       }
     } catch (error) {
-      console.error('Error fetching stats:', error);
+      console.error("Error fetching stats:", error);
     }
   };
 
@@ -909,11 +924,11 @@ const RegisteredIPsPanel = ({ setActivePanel, setPopup }) => {
   // View IP details
   const viewIPDetails = async (ipId) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       const response = await fetch(`http://localhost:5000/api/ip/${ipId}`, {
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       const result = await response.json();
@@ -922,31 +937,33 @@ const RegisteredIPsPanel = ({ setActivePanel, setPopup }) => {
         setShowDetails(true);
       }
     } catch (error) {
-      console.error('Error fetching IP details:', error);
+      console.error("Error fetching IP details:", error);
     }
   };
 
   // Delete IP
   const deleteIP = async (ipId) => {
-    if (!window.confirm('Are you sure you want to delete this IP registration?')) {
+    if (
+      !window.confirm("Are you sure you want to delete this IP registration?")
+    ) {
       return;
     }
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       const response = await fetch(`http://localhost:5000/api/ip/${ipId}`, {
-        method: 'DELETE',
+        method: "DELETE",
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       const result = await response.json();
       if (response.ok) {
         setPopup({
           show: true,
-          message: 'IP deleted successfully',
-          success: true
+          message: "IP deleted successfully",
+          success: true,
         });
         fetchIPs(); // Refresh list
         fetchStats(); // Refresh stats
@@ -957,189 +974,321 @@ const RegisteredIPsPanel = ({ setActivePanel, setPopup }) => {
       setPopup({
         show: true,
         message: `Failed to delete IP: ${error.message}`,
-        success: false
+        success: false,
       });
     }
   };
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'confirmed': return 'text-green-600 bg-green-100';
-      case 'pending': return 'text-yellow-600 bg-yellow-100';
-      case 'failed': return 'text-red-600 bg-red-100';
-      default: return 'text-gray-600 bg-gray-100';
+      case "confirmed":
+        return "text-green-600 bg-green-100";
+      case "pending":
+        return "text-yellow-600 bg-yellow-100";
+      case "failed":
+        return "text-red-600 bg-red-100";
+      default:
+        return "text-gray-600 bg-gray-100";
     }
   };
 
   const getIPTypeIcon = (ipType) => {
     switch (ipType) {
-      case 'copyright': return '©';
-      case 'trademark': return '™';
-      case 'patent': return '⚖️';
-      case 'design': return '🎨';
-      case 'trade-secret': return '🔐';
-      default: return '📄';
+      case "copyright":
+        return "©";
+      case "trademark":
+        return "™";
+      case "patent":
+        return "⚖️";
+      case "design":
+        return "🎨";
+      case "trade-secret":
+        return "🔐";
+      default:
+        return "📄";
     }
   };
 
   if (showDetails && selectedIP) {
     return (
       <motion.div
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.3 }}
-        className="w-full max-w-6xl mx-auto bg-white p-8 rounded-2xl shadow-md"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="w-full max-w-7xl mx-auto bg-gradient-to-br from-white to-gray-50 rounded-3xl shadow-xl overflow-hidden"
       >
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-3xl font-bold text-[#2d336b]">IP Details</h2>
-          <button
-            onClick={() => setShowDetails(false)}
-            className="flex items-center gap-2 text-[#7886c7] hover:text-[#2d336b] transition-all"
-          >
-            <XMarkIcon className="h-5 w-5" />
-            Back to List
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Basic Information */}
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-xl font-semibold mb-4 text-[#2d336b]">Basic Information</h3>
-              <div className="space-y-3">
-                <div>
-                  <label className="font-semibold text-gray-700">Title:</label>
-                  <p className="text-gray-600">{selectedIP.title}</p>
-                </div>
-                <div>
-                  <label className="font-semibold text-gray-700">Type:</label>
-                  <p className="text-gray-600 flex items-center gap-2">
-                    <span>{getIPTypeIcon(selectedIP.ipType)}</span>
-                    {selectedIP.ipType}
-                  </p>
-                </div>
-                <div>
-                  <label className="font-semibold text-gray-700">Category:</label>
-                  <p className="text-gray-600">{selectedIP.category}</p>
-                </div>
-                <div>
-                  <label className="font-semibold text-gray-700">Status:</label>
-                  <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(selectedIP.status)}`}>
-                    {selectedIP.status}
+        {/* Header Section */}
+        <div className="bg-gradient-to-r from-[#2d336b] to-[#7886c7] text-white p-6 md:p-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex-1">
+              <h1 className="text-2xl md:text-3xl font-bold mb-2">
+                {selectedIP.title}
+              </h1>
+              <div className="flex flex-wrap items-center gap-3 text-sm">
+                <span className="flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full">
+                  <span className="text-lg">
+                    {getIPTypeIcon(selectedIP.ipType)}
                   </span>
-                </div>
-                <div>
-                  <label className="font-semibold text-gray-700">Registration Date:</label>
-                  <p className="text-gray-600">{selectedIP.formattedDate}</p>
-                </div>
+                  {selectedIP.ipType}
+                </span>
+                <span className="bg-white/20 px-3 py-1 rounded-full">
+                  {selectedIP.category}
+                </span>
+                <span
+                  className={`px-3 py-1 rounded-full text-xs font-medium ${
+                    selectedIP.status === "confirmed"
+                      ? "bg-green-500/90"
+                      : selectedIP.status === "pending"
+                      ? "bg-yellow-500/90"
+                      : "bg-red-500/90"
+                  }`}
+                >
+                  {selectedIP.status}
+                </span>
               </div>
             </div>
+            <button
+              onClick={() => setShowDetails(false)}
+              className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-full transition-all duration-300 self-start sm:self-center"
+            >
+              <XMarkIcon className="h-5 w-5" />
+              <span className="hidden sm:inline">Back to List</span>
+            </button>
+          </div>
+        </div>
 
-            {/* Description */}
-            <div>
-              <label className="font-semibold text-gray-700">Description:</label>
-              <p className="text-gray-600 mt-2 leading-relaxed">{selectedIP.description}</p>
-            </div>
+        {/* Content Section */}
+        <div className="p-6 md:p-8 space-y-8">
+          {/* Description Card */}
+          <div className="bg-white rounded-2xl p-6 shadow-md border border-gray-100">
+            <h3 className="text-xl font-semibold mb-4 text-[#2d336b] flex items-center gap-2">
+              <DocumentPlusIcon className="h-6 w-6 text-[#7886c7]" />
+              Description
+            </h3>
+            <p className="text-gray-700 leading-relaxed text-base">
+              {selectedIP.description}
+            </p>
 
             {selectedIP.tags && (
-              <div>
-                <label className="font-semibold text-gray-700">Tags:</label>
-                <p className="text-gray-600">{selectedIP.tags}</p>
+              <div className="mt-4 pt-4 border-t border-gray-100">
+                <h4 className="text-sm font-semibold text-gray-600 mb-2">
+                  Tags:
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {selectedIP.tags.split(",").map((tag, index) => (
+                    <span
+                      key={index}
+                      className="bg-[#f0f2ff] text-[#2d336b] px-3 py-1 rounded-full text-sm font-medium"
+                    >
+                      {tag.trim()}
+                    </span>
+                  ))}
+                </div>
               </div>
             )}
           </div>
 
-          {/* Blockchain & Technical Information */}
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-xl font-semibold mb-4 text-[#2d336b]">Blockchain Information</h3>
-              <div className="space-y-3">
-                {selectedIP.blockchain.transactionHash && (
-                  <div>
-                    <label className="font-semibold text-gray-700">Transaction Hash:</label>
-                    <p className="text-gray-600 font-mono text-sm break-all">
-                      {selectedIP.blockchain.transactionHash}
+          {/* Information Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Basic Information Card */}
+            <div className="bg-white rounded-2xl p-6 shadow-md border border-gray-100 space-y-4 h-fit">
+              <h3 className="text-xl font-semibold text-[#2d336b] flex items-center gap-2 border-b border-gray-100 pb-3">
+                <UserIcon className="h-6 w-6 text-[#7886c7]" />
+                Basic Information
+              </h3>
+
+              <div className="space-y-5">
+                <div className="flex flex-col space-y-2">
+                  <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                    IP TYPE
+                  </label>
+                  <div className="flex items-center gap-3 text-gray-800">
+                    <span className="text-2xl">
+                      {getIPTypeIcon(selectedIP.ipType)}
+                    </span>
+                    <span className="font-semibold capitalize text-lg">
+                      {selectedIP.ipType}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col space-y-2">
+                  <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                    CATEGORY
+                  </label>
+                  <p className="text-gray-800 font-semibold text-lg">
+                    {selectedIP.category}
+                  </p>
+                </div>
+
+                <div className="flex flex-col space-y-2">
+                  <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                    REGISTRATION DATE
+                  </label>
+                  <p className="text-gray-800 font-semibold flex items-center gap-2 text-base">
+                    <ClockIcon className="h-5 w-5 text-gray-500" />
+                    {selectedIP.formattedDate}
+                  </p>
+                </div>
+
+                <div className="flex flex-col space-y-2">
+                  <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                    VISIBILITY
+                  </label>
+                  <div className="flex items-center gap-3">
+                    {selectedIP.isPublic ? (
+                      <>
+                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                        <span className="text-green-700 font-semibold text-base">
+                          Public
+                        </span>
+                        <span className="text-gray-500 text-sm">
+                          (visible in marketplace)
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
+                        <span className="text-gray-700 font-semibold text-base">
+                          Private
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Blockchain Information Card */}
+            <div className="bg-white rounded-2xl p-6 shadow-md border border-gray-100 space-y-4 h-fit">
+              <h3 className="text-xl font-semibold text-[#2d336b] flex items-center gap-2 border-b border-gray-100 pb-3">
+                <LinkIcon className="h-6 w-6 text-[#7886c7]" />
+                Blockchain Data
+              </h3>
+
+              <div className="space-y-5">
+                {selectedIP.blockchain?.transactionHash && (
+                  <div className="flex flex-col space-y-2">
+                    <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                      TRANSACTION HASH
+                    </label>
+                    <div className="bg-gray-50 p-4 rounded-xl border">
+                      <p className="text-gray-800 font-mono text-sm break-all leading-relaxed">
+                        {selectedIP.blockchain.transactionHash}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-6">
+                  {selectedIP.blockchain?.blockNumber && (
+                    <div className="flex flex-col space-y-2">
+                      <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                        BLOCK
+                      </label>
+                      <p className="text-gray-800 font-mono font-bold text-lg">
+                        #{selectedIP.blockchain.blockNumber}
+                      </p>
+                    </div>
+                  )}
+
+                  {selectedIP.blockchain?.ipId && (
+                    <div className="flex flex-col space-y-2">
+                      <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                        IP ID
+                      </label>
+                      <p className="text-gray-800 font-mono font-bold text-lg">
+                        #{selectedIP.blockchain.ipId}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex flex-col space-y-2">
+                  <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                    CREATOR ADDRESS
+                  </label>
+                  <div className="bg-gray-50 p-4 rounded-xl border">
+                    <p className="text-gray-800 font-mono text-sm break-all leading-relaxed">
+                      {selectedIP.creator}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* File Information Card - Full Width */}
+          {selectedIP.file && selectedIP.file.name && (
+            <div className="bg-white rounded-2xl p-6 shadow-md border border-gray-100 space-y-4">
+              <h3 className="text-xl font-semibold text-[#2d336b] flex items-center gap-2 border-b border-gray-100 pb-3">
+                <FolderIcon className="h-6 w-6 text-[#7886c7]" />
+                File Details
+              </h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="flex flex-col space-y-2">
+                  <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                    FILE NAME
+                  </label>
+                  <p className="text-gray-800 font-semibold break-all text-base">
+                    {selectedIP.file.name}
+                  </p>
+                </div>
+
+                {selectedIP.file.size && (
+                  <div className="flex flex-col space-y-2">
+                    <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                      FILE SIZE
+                    </label>
+                    <p className="text-gray-800 font-semibold text-base">
+                      {(selectedIP.file.size / 1024).toFixed(2)} KB
                     </p>
                   </div>
                 )}
-                {selectedIP.blockchain.blockNumber && (
-                  <div>
-                    <label className="font-semibold text-gray-700">Block Number:</label>
-                    <p className="text-gray-600">{selectedIP.blockchain.blockNumber}</p>
+
+                {selectedIP.file.hash && (
+                  <div className="flex flex-col space-y-2 md:col-span-1">
+                    <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                      SHA-256 HASH
+                    </label>
+                    <div className="bg-gray-50 p-4 rounded-xl border">
+                      <p className="text-gray-800 font-mono text-xs break-all leading-relaxed">
+                        {selectedIP.file.hash}
+                      </p>
+                    </div>
                   </div>
                 )}
-                {selectedIP.blockchain.ipId && (
-                  <div>
-                    <label className="font-semibold text-gray-700">Smart Contract IP ID:</label>
-                    <p className="text-gray-600">{selectedIP.blockchain.ipId}</p>
-                  </div>
-                )}
-                <div>
-                  <label className="font-semibold text-gray-700">Creator Address:</label>
-                  <p className="text-gray-600 font-mono text-sm break-all">{selectedIP.creator}</p>
-                </div>
               </div>
             </div>
+          )}
 
-            {/* File Information */}
-            {selectedIP.file && selectedIP.file.name && (
-              <div>
-                <h3 className="text-xl font-semibold mb-4 text-[#2d336b]">File Information</h3>
-                <div className="space-y-3">
-                  <div>
-                    <label className="font-semibold text-gray-700">File Name:</label>
-                    <p className="text-gray-600">{selectedIP.file.name}</p>
-                  </div>
-                  {selectedIP.file.size && (
-                    <div>
-                      <label className="font-semibold text-gray-700">File Size:</label>
-                      <p className="text-gray-600">{(selectedIP.file.size / 1024).toFixed(2)} KB</p>
-                    </div>
-                  )}
-                  {selectedIP.file.hash && (
-                    <div>
-                      <label className="font-semibold text-gray-700">File Hash (SHA-256):</label>
-                      <p className="text-gray-600 font-mono text-sm break-all">{selectedIP.file.hash}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Settings */}
-            <div>
-              <h3 className="text-xl font-semibold mb-4 text-[#2d336b]">Settings</h3>
-              <div className="space-y-3">
-                <div>
-                  <label className="font-semibold text-gray-700">Visibility:</label>
-                  <p className="text-gray-600">
-                    {selectedIP.isPublic ? 'Public (visible in marketplace)' : 'Private'}
-                  </p>
-                </div>
-              </div>
+          {/* Action Buttons */}
+          <div className="bg-white rounded-2xl p-6 shadow-md border border-gray-100">
+            <h3 className="text-lg font-semibold text-[#2d336b] mb-4">
+              Actions
+            </h3>
+            <div className="flex flex-col sm:flex-row gap-4">
+              {selectedIP.blockchain &&
+                selectedIP.blockchain.transactionHash && (
+                  <a
+                    href={`https://etherscan.io/tx/${selectedIP.blockchain.transactionHash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                  >
+                    <LinkIcon className="h-5 w-5" />
+                    View on Etherscan
+                  </a>
+                )}
+              <button
+                onClick={() => deleteIP(selectedIP.id)}
+                className="flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-3 rounded-xl hover:from-red-700 hover:to-red-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+              >
+                Delete IP
+              </button>
             </div>
           </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex gap-4 mt-8 pt-6 border-t">
-          {selectedIP.blockchain && selectedIP.blockchain.transactionHash && (
-            <a
-              href={`https://etherscan.io/tx/${selectedIP.blockchain.transactionHash}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all"
-            >
-              <LinkIcon className="h-4 w-4" />
-              View on Etherscan
-            </a>
-          )}
-          <button
-            onClick={() => deleteIP(selectedIP.id)}
-            className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-all"
-          >
-            Delete IP
-          </button>
         </div>
       </motion.div>
     );
@@ -1167,24 +1316,37 @@ const RegisteredIPsPanel = ({ setActivePanel, setPopup }) => {
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
           <div className="bg-blue-50 p-4 rounded-lg">
-            <p className="text-2xl font-bold text-blue-600">{stats.overview.total}</p>
+            <p className="text-2xl font-bold text-blue-600">
+              {stats.overview.total}
+            </p>
             <p className="text-sm text-blue-800">Total IPs</p>
           </div>
           <div className="bg-green-50 p-4 rounded-lg">
-            <p className="text-2xl font-bold text-green-600">{stats.overview.confirmed}</p>
+            <p className="text-2xl font-bold text-green-600">
+              {stats.overview.confirmed}
+            </p>
             <p className="text-sm text-green-800">Confirmed</p>
           </div>
           <div className="bg-yellow-50 p-4 rounded-lg">
-            <p className="text-2xl font-bold text-yellow-600">{stats.overview.pending}</p>
+            <p className="text-2xl font-bold text-yellow-600">
+              {stats.overview.pending}
+            </p>
             <p className="text-sm text-yellow-800">Pending</p>
           </div>
           <div className="bg-purple-50 p-4 rounded-lg">
-            <p className="text-2xl font-bold text-purple-600">{stats.overview.public}</p>
+            <p className="text-2xl font-bold text-purple-600">
+              {stats.overview.public}
+            </p>
             <p className="text-sm text-purple-800">Public</p>
           </div>
           <div className="bg-gray-50 p-4 rounded-lg">
             <p className="text-2xl font-bold text-gray-600">
-              {stats.overview.total > 0 ? Math.round((stats.overview.confirmed / stats.overview.total) * 100) : 0}%
+              {stats.overview.total > 0
+                ? Math.round(
+                    (stats.overview.confirmed / stats.overview.total) * 100
+                  )
+                : 0}
+              %
             </p>
             <p className="text-sm text-gray-800">Success Rate</p>
           </div>
@@ -1224,7 +1386,9 @@ const RegisteredIPsPanel = ({ setActivePanel, setPopup }) => {
         <div className="text-center py-12">
           <FolderIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <p className="text-gray-500 mb-4">
-            {searchTerm || filter !== 'all' ? 'No IPs found matching your criteria' : 'No IPs registered yet'}
+            {searchTerm || filter !== "all"
+              ? "No IPs found matching your criteria"
+              : "No IPs registered yet"}
           </p>
           <button
             onClick={() => setActivePanel("registerip")}
@@ -1236,11 +1400,18 @@ const RegisteredIPsPanel = ({ setActivePanel, setPopup }) => {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {ips.map((ip) => (
-            <div key={ip.id} className="border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
+            <div
+              key={ip.id}
+              className="border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow"
+            >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
-                  <h3 className="font-semibold text-lg text-[#2d336b] mb-2">{ip.title}</h3>
-                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">{ip.description}</p>
+                  <h3 className="font-semibold text-lg text-[#2d336b] mb-2">
+                    {ip.title}
+                  </h3>
+                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                    {ip.description}
+                  </p>
                   <div className="flex items-center gap-4 text-sm">
                     <span className="flex items-center gap-1">
                       <span>{getIPTypeIcon(ip.ipType)}</span>
@@ -1249,13 +1420,19 @@ const RegisteredIPsPanel = ({ setActivePanel, setPopup }) => {
                     <span className="text-gray-500">{ip.category}</span>
                   </div>
                 </div>
-                <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(ip.status)}`}>
+                <span
+                  className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                    ip.status
+                  )}`}
+                >
                   {ip.status}
                 </span>
               </div>
-              
+
               <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                <span className="text-sm text-gray-500">{ip.formattedDate}</span>
+                <span className="text-sm text-gray-500">
+                  {ip.formattedDate}
+                </span>
                 <div className="flex gap-2">
                   <button
                     onClick={() => viewIPDetails(ip.id)}
@@ -1502,7 +1679,9 @@ export const UserDashboard = () => {
         setPopup={setPopup}
       />
     ),
-    ips: <RegisteredIPsPanel setActivePanel={setActivePanel} setPopup={setPopup} />,
+    ips: (
+      <RegisteredIPsPanel setActivePanel={setActivePanel} setPopup={setPopup} />
+    ),
     history: (
       <motion.div
         initial={{ opacity: 0, x: 20 }}
