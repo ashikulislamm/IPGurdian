@@ -8,11 +8,18 @@ import {
   Bars3Icon,
   PlusIcon,
   DocumentPlusIcon,
+  CheckCircleIcon,
+  ExclamationTriangleIcon,
+  LinkIcon,
+  ClockIcon,
+  WalletIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { motion } from "framer-motion";
 import { ResponsiveNavbar } from "../components/Navbar";
 import { ResponsiveFooter } from "../components/Footer";
 import { AuthContext } from "../Context/AuthContext";
+import { useWeb3 } from "../Context/Web3Context-simple.jsx";
 import { useNavigate } from "react-router-dom";
 import UserAvatar from "../assets/profile.png";
 
@@ -305,8 +312,10 @@ const SettingsPanel = ({ userData, setUserData, setPopup }) => {
   );
 };
 
+// Enhanced RegisterIPPanel with blockchain integration
 const RegisterIPPanel = ({ setPopup }) => {
-  const [loading, setLoading] = useState(false);
+  // Use Web3 context
+  const { contract, signer, isConnected, account, chainId, isSupportedNetwork } = useWeb3();
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -316,13 +325,57 @@ const RegisterIPPanel = ({ setPopup }) => {
     file: null,
     isPublic: false,
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [blockchainTx, setBlockchainTx] = useState(null);
+  const [validationErrors, setValidationErrors] = useState({});
+
+  // Validate form data
+  const validateForm = () => {
+    const errors = {};
+
+    if (!formData.title.trim()) {
+      errors.title = "IP title is required";
+    } else if (formData.title.length > 100) {
+      errors.title = "Title must be less than 100 characters";
+    }
+
+    if (!formData.ipType) {
+      errors.ipType = "IP type is required";
+    }
+
+    if (!formData.category.trim()) {
+      errors.category = "Category is required";
+    }
+
+    if (!formData.description.trim()) {
+      errors.description = "Description is required";
+    } else if (formData.description.length < 50) {
+      errors.description = "Description must be at least 50 characters";
+    } else if (formData.description.length > 1000) {
+      errors.description = "Description must be less than 1000 characters";
+    }
+
+    if (formData.file && formData.file.size > 10 * 1024 * 1024) {
+      errors.file = "File size must be less than 10MB";
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === "checkbox" ? checked : value,
-    });
+
+    if (type === "checkbox") {
+      setFormData((prev) => ({ ...prev, [name]: checked }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
+
+    // Clear validation error when user starts typing
+    if (validationErrors[name]) {
+      setValidationErrors((prev) => ({ ...prev, [name]: "" }));
+    }
   };
 
   const handleFileChange = (e) => {
@@ -339,46 +392,85 @@ const RegisterIPPanel = ({ setPopup }) => {
       }
       setFormData({ ...formData, file });
     }
+
+    // Clear validation error
+    if (validationErrors.file) {
+      setValidationErrors((prev) => ({ ...prev, file: "" }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
 
-    // Simulate API call for now
-    try {
-      // This would be replaced with actual API call
-      setTimeout(() => {
-        setPopup({
-          show: true,
-          message: "IP Registration submitted successfully! (Demo mode)",
-          success: true,
-        });
-        setLoading(false);
-        // Reset form
-        setFormData({
-          title: "",
-          description: "",
-          ipType: "copyright",
-          category: "",
-          tags: "",
-          file: null,
-          isPublic: false,
-        });
-      }, 2000);
-    } catch (error) {
-      setLoading(false);
+    // Validate form
+    if (!validateForm()) {
       setPopup({
         show: true,
-        message: "Failed to register IP. Please try again.",
+        message: "Please fix the validation errors before submitting",
         success: false,
       });
+      return;
     }
 
-    // Hide popup after 4 seconds
+    // Mock blockchain functionality for testing
+    console.log("Mock IP registration for testing");
+
+    setIsSubmitting(true);
+
+    try {
+      // Simulate blockchain registration for testing
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      setPopup({
+        show: true,
+        message: "IP registered successfully (test mode)!",
+        success: true,
+      });
+
+      // Reset form
+      setFormData({
+        title: "",
+        description: "",
+        ipType: "copyright",
+        category: "",
+        tags: "",
+        file: null,
+        isPublic: false,
+      });
+
+      // Clear file input
+      const fileInput = document.querySelector('input[type="file"]');
+      if (fileInput) fileInput.value = "";
+    } catch (error) {
+      console.error("Registration error:", error);
+      setPopup({
+        show: true,
+        message: `Failed to register IP: ${error.message}`,
+        success: false,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+
+    // Hide popup after 6 seconds
     setTimeout(() => {
       setPopup({ show: false, message: "", success: true });
     }, 6000);
+  };
+
+  // Helper function to generate file hash
+  const generateFileHash = async (file) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        const arrayBuffer = event.target.result;
+        const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        resolve(hashHex);
+      };
+      reader.readAsArrayBuffer(file);
+    });
   };
 
   return (
@@ -391,6 +483,51 @@ const RegisterIPPanel = ({ setPopup }) => {
       <h2 className="text-3xl font-bold mb-6 text-[#2d336b]">
         Register New Intellectual Property
       </h2>
+
+      {/* Wallet Connection Status - Temporarily disabled */}
+      <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <p className="text-blue-800 text-sm">
+          <strong>Test Mode:</strong> Blockchain wallet connection temporarily disabled for debugging.
+        </p>
+      </div>
+
+      {/* Blockchain Transaction Success */}
+      {blockchainTx && (
+        <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
+          <div className="flex items-start space-x-3">
+            <CheckCircleIcon className="h-6 w-6 text-green-500 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <h3 className="font-medium text-green-800 mb-2">
+                Blockchain Registration Successful!
+              </h3>
+              <div className="text-sm text-green-600 space-y-1">
+                <p>
+                  <strong>Transaction Hash:</strong>
+                  <a
+                    href={`https://etherscan.io/tx/${blockchainTx.transactionHash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="ml-2 underline hover:no-underline"
+                  >
+                    {blockchainTx.transactionHash.slice(0, 10)}...
+                  </a>
+                </p>
+                <p>
+                  <strong>Block Number:</strong> {blockchainTx.blockNumber}
+                </p>
+                <p>
+                  <strong>Gas Used:</strong> {blockchainTx.gasUsed}
+                </p>
+                {blockchainTx.ipId && (
+                  <p>
+                    <strong>IP ID:</strong> {blockchainTx.ipId}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-6 text-[#2d336b]">
         {/* IP Title */}
@@ -405,15 +542,29 @@ const RegisterIPPanel = ({ setPopup }) => {
             value={formData.title}
             onChange={handleChange}
             placeholder="Enter the title of your intellectual property"
-            className="w-full px-4 py-3 border border-[#a9b5df] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7886c7]"
+            className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7886c7] ${
+              validationErrors.title ? "border-red-500" : "border-[#a9b5df]"
+            }`}
+            maxLength={100}
             required
           />
+          {validationErrors.title && (
+            <p className="mt-1 text-sm text-red-600">
+              {validationErrors.title}
+            </p>
+          )}
+          <p className="mt-1 text-xs text-gray-500">
+            {formData.title.length}/100 characters
+          </p>
         </div>
 
         {/* IP Type */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-semibold mb-2" htmlFor="ipType">
+            <label
+              className="block text-sm font-semibold mb-2"
+              htmlFor="ipType"
+            >
               IP Type *
             </label>
             <select
@@ -421,7 +572,9 @@ const RegisterIPPanel = ({ setPopup }) => {
               name="ipType"
               value={formData.ipType}
               onChange={handleChange}
-              className="w-full px-4 py-3 border border-[#a9b5df] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7886c7]"
+              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7886c7] ${
+                validationErrors.ipType ? "border-red-500" : "border-[#a9b5df]"
+              }`}
               required
             >
               <option value="copyright">Copyright</option>
@@ -430,11 +583,19 @@ const RegisterIPPanel = ({ setPopup }) => {
               <option value="design">Design</option>
               <option value="trade-secret">Trade Secret</option>
             </select>
+            {validationErrors.ipType && (
+              <p className="mt-1 text-sm text-red-600">
+                {validationErrors.ipType}
+              </p>
+            )}
           </div>
 
           <div>
-            <label className="block text-sm font-semibold mb-2" htmlFor="category">
-              Category
+            <label
+              className="block text-sm font-semibold mb-2"
+              htmlFor="category"
+            >
+              Category *
             </label>
             <input
               id="category"
@@ -443,14 +604,27 @@ const RegisterIPPanel = ({ setPopup }) => {
               value={formData.category}
               onChange={handleChange}
               placeholder="e.g., Software, Music, Art, Technology"
-              className="w-full px-4 py-3 border border-[#a9b5df] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7886c7]"
+              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7886c7] ${
+                validationErrors.category
+                  ? "border-red-500"
+                  : "border-[#a9b5df]"
+              }`}
+              required
             />
+            {validationErrors.category && (
+              <p className="mt-1 text-sm text-red-600">
+                {validationErrors.category}
+              </p>
+            )}
           </div>
         </div>
 
         {/* Description */}
         <div>
-          <label className="block text-sm font-semibold mb-2" htmlFor="description">
+          <label
+            className="block text-sm font-semibold mb-2"
+            htmlFor="description"
+          >
             Description *
           </label>
           <textarea
@@ -459,12 +633,22 @@ const RegisterIPPanel = ({ setPopup }) => {
             rows={4}
             value={formData.description}
             onChange={handleChange}
-            placeholder="Provide a detailed description of your intellectual property..."
-            className="w-full px-4 py-3 border border-[#a9b5df] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7886c7] resize-vertical"
+            placeholder="Provide a detailed description of your intellectual property (minimum 50 characters)"
+            className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7886c7] resize-vertical ${
+              validationErrors.description
+                ? "border-red-500"
+                : "border-[#a9b5df]"
+            }`}
+            maxLength={1000}
             required
           />
-          <p className="text-xs text-gray-500 mt-1">
-            Minimum 50 characters required
+          {validationErrors.description && (
+            <p className="mt-1 text-sm text-red-600">
+              {validationErrors.description}
+            </p>
+          )}
+          <p className="mt-1 text-xs text-gray-500">
+            {formData.description.length}/1000 characters (minimum 50)
           </p>
         </div>
 
@@ -479,10 +663,16 @@ const RegisterIPPanel = ({ setPopup }) => {
             type="file"
             onChange={handleFileChange}
             accept=".pdf,.doc,.docx,.jpg,.png,.gif,.mp3,.mp4,.zip"
-            className="w-full px-4 py-3 border border-[#a9b5df] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7886c7] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-white file:bg-[#7886c7] hover:file:bg-[#2d336b]"
+            className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7886c7] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-white file:bg-[#7886c7] hover:file:bg-[#2d336b] ${
+              validationErrors.file ? "border-red-500" : "border-[#a9b5df]"
+            }`}
           />
+          {validationErrors.file && (
+            <p className="mt-1 text-sm text-red-600">{validationErrors.file}</p>
+          )}
           <p className="text-xs text-gray-500 mt-1">
-            Supported formats: PDF, DOC, DOCX, JPG, PNG, GIF, MP3, MP4, ZIP (Max 10MB)
+            Supported formats: PDF, DOC, DOCX, JPG, PNG, GIF, MP3, MP4, ZIP (Max
+            10MB)
           </p>
         </div>
 
@@ -500,6 +690,9 @@ const RegisterIPPanel = ({ setPopup }) => {
             placeholder="Enter tags separated by commas (e.g., innovation, technology, creative)"
             className="w-full px-4 py-3 border border-[#a9b5df] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7886c7]"
           />
+          <p className="mt-1 text-xs text-gray-500">
+            Use tags to make your IP more discoverable
+          </p>
         </div>
 
         {/* Public/Private Toggle */}
@@ -517,28 +710,55 @@ const RegisterIPPanel = ({ setPopup }) => {
           </label>
         </div>
 
+        {/* Development Notice */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-start space-x-3">
+            <ExclamationTriangleIcon className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-blue-800">
+              <p className="font-medium mb-1">Development Mode</p>
+              <p>
+                IP registration is currently in demo mode. Blockchain
+                integration with your smart contract will be activated once the
+                Web3 setup is complete. This will provide immutable timestamp
+                proof and cryptographic verification.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Submit Button */}
         <div className="pt-4">
           <button
             type="submit"
-            disabled={loading}
-            className={`w-full font-semibold py-3 rounded-lg transition-all ${
-              loading
+            disabled={isSubmitting}
+            className={`w-full font-semibold py-3 rounded-lg transition-all flex items-center justify-center space-x-2 ${
+              isSubmitting
                 ? "bg-gray-400 cursor-not-allowed"
                 : "bg-[#7886c7] hover:bg-[#2d336b]"
             } text-white`}
           >
-            {loading ? "Registering IP..." : "Register Intellectual Property"}
+            {isSubmitting ? (
+              <>
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                <span>Registering IP...</span>
+              </>
+            ) : (
+              <>
+                <DocumentPlusIcon className="h-5 w-5" />
+                <span>Register Intellectual Property</span>
+              </>
+            )}
           </button>
         </div>
 
-        {/* Disclaimer */}
+        {/* Enhanced Disclaimer */}
         <div className="bg-[#f9faff] p-4 rounded-lg border border-[#a9b5df]">
           <p className="text-xs text-gray-600">
-            <strong>Note:</strong> By registering your IP on IPGuardian, you are creating a 
-            blockchain-backed proof of creation. This registration does not replace official 
-            IP registration with government authorities but provides additional protection 
-            and verification.
+            <strong>Note:</strong> By registering your IP on IPGuardian, you are
+            creating a blockchain-backed proof of creation with immutable
+            timestamp. This registration does not replace official IP
+            registration with government authorities but provides additional
+            protection and verification through cryptographic proof.
           </p>
         </div>
       </form>
@@ -730,19 +950,19 @@ export const UserDashboard = () => {
         {/* Statistics */}
         <div className="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-6 text-center bg-[#f3f4fa] p-6 rounded-xl shadow-md">
           <div>
-            <p className="text-2xl font-bold text-[#2d336b]">120</p>
+            <p className="text-2xl font-bold text-[#2d336b]">0</p>
             <p className="text-sm text-gray-600">IPs Registered</p>
           </div>
           <div>
-            <p className="text-2xl font-bold text-[#2d336b]">45</p>
+            <p className="text-2xl font-bold text-[#2d336b]">0</p>
             <p className="text-sm text-gray-600">IPs Transferred</p>
           </div>
           <div>
-            <p className="text-2xl font-bold text-[#2d336b]">10</p>
+            <p className="text-2xl font-bold text-[#2d336b]">0</p>
             <p className="text-sm text-gray-600">Pending Reviews</p>
           </div>
           <div>
-            <p className="text-2xl font-bold text-[#2d336b]">98%</p>
+            <p className="text-2xl font-bold text-[#2d336b]">100%</p>
             <p className="text-sm text-gray-600">Approval Rate</p>
           </div>
         </div>
@@ -760,21 +980,21 @@ export const UserDashboard = () => {
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.3 }}
+        className="w-full max-w-4xl mx-auto bg-white p-8 rounded-2xl shadow-md"
       >
         <h2 className="text-2xl font-bold mb-4 text-[#2d336b]">
           Registered IPs
         </h2>
-        <ul className="space-y-3 text-[#2d336b]">
-          <li className="p-4 border rounded-lg bg-white shadow">
-            Trademark - Logo Design (ID# 00123)
-          </li>
-          <li className="p-4 border rounded-lg bg-white shadow">
-            Patent - Mobile Charging Mechanism (ID# 00456)
-          </li>
-          <li className="p-4 border rounded-lg bg-white shadow">
-            Copyright - Music Composition (ID# 00891)
-          </li>
-        </ul>
+        <div className="text-center py-12">
+          <FolderIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-500 mb-4">No IPs registered yet</p>
+          <button
+            onClick={() => setActivePanel("registerip")}
+            className="bg-[#7886c7] text-white px-6 py-2 rounded-lg hover:bg-[#2d336b] transition-all"
+          >
+            Register Your First IP
+          </button>
+        </div>
       </motion.div>
     ),
     history: (
@@ -782,33 +1002,14 @@ export const UserDashboard = () => {
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.3 }}
+        className="w-full max-w-4xl mx-auto bg-white p-8 rounded-2xl shadow-md"
       >
         <h2 className="text-2xl font-bold mb-4 text-[#2d336b]">
           IP Trading History
         </h2>
-        <div className="space-y-4 text-[#2d336b]">
-          <div className="bg-white p-4 rounded-lg shadow border">
-            <p>
-              <strong>Transferred:</strong> Design Patent
-            </p>
-            <p>
-              <strong>To:</strong> Alice Johnson
-            </p>
-            <p>
-              <strong>Date:</strong> 12 May 2025
-            </p>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow border">
-            <p>
-              <strong>Transferred:</strong> Software Copyright
-            </p>
-            <p>
-              <strong>To:</strong> Creative Studios Ltd.
-            </p>
-            <p>
-              <strong>Date:</strong> 28 April 2025
-            </p>
-          </div>
+        <div className="text-center py-12">
+          <ClockIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-500">No trading history available</p>
         </div>
       </motion.div>
     ),

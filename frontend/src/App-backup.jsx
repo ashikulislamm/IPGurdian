@@ -8,12 +8,12 @@ import { TermsAndConditions } from "./pages/TermsConditions.jsx";
 import { UserDashboard } from "./pages/Profile.jsx";
 import { IPDetails } from "./pages/IPDetails.jsx";
 import { AuthProvider } from "./Context/AuthContext.jsx";
-import { Web3Provider } from "./Context/Web3Context-simple.jsx";
+import { Web3Provider } from "./Context/Web3Context.jsx";
 import "./App.css";
 
 function App() {
   return (
-    <div>
+    <>
       <AuthProvider>
         <Web3Provider>
           <Router>
@@ -32,7 +32,7 @@ function App() {
           </Router>
         </Web3Provider>
       </AuthProvider>
-    </div>
+    </>
   );
 }
 
