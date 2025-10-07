@@ -1,31 +1,35 @@
-import React, { useState } from 'react';
-import { useWeb3 } from '../Context/Web3Context-private';
-import { 
-  WalletIcon, 
-  LinkIcon, 
-  XMarkIcon, 
+import React, { useState } from "react";
+import { useWeb3 } from "../Context/Web3Context-private";
+import {
+  WalletIcon,
+  LinkIcon,
+  XMarkIcon,
   ExclamationTriangleIcon,
   CheckCircleIcon,
   ArrowPathIcon,
-  Cog6ToothIcon
-} from '@heroicons/react/24/outline';
+  Cog6ToothIcon,
+} from "@heroicons/react/24/outline";
 
-const WalletConnect = ({ showBalance = true, showNetwork = true, compact = false }) => {
-  const { 
-    account, 
-    isConnected, 
-    loading, 
+const WalletConnect = ({
+  showBalance = true,
+  showNetwork = true,
+  compact = false,
+}) => {
+  const {
+    account,
+    isConnected,
+    loading,
     error,
     chainId,
     balance,
-    connectWallet, 
+    connectWallet,
     disconnectWallet,
     refreshBalance,
     isMetaMaskInstalled,
     isSupportedNetwork,
     switchToPrivateNetwork,
     SUPPORTED_NETWORKS,
-    formatAddress
+    formatAddress,
   } = useWeb3();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -44,7 +48,7 @@ const WalletConnect = ({ showBalance = true, showNetwork = true, compact = false
     try {
       await switchToPrivateNetwork();
     } catch (error) {
-      console.error('Network switch failed:', error);
+      console.error("Network switch failed:", error);
     } finally {
       setIsSwitchingNetwork(false);
     }
@@ -54,7 +58,7 @@ const WalletConnect = ({ showBalance = true, showNetwork = true, compact = false
   const handleConnect = async () => {
     const result = await connectWallet();
     if (!result.success && result.error) {
-      console.error('Connection failed:', result.error);
+      console.error("Connection failed:", result.error);
     }
   };
 
@@ -62,12 +66,14 @@ const WalletConnect = ({ showBalance = true, showNetwork = true, compact = false
   const handleDisconnect = () => {
     const result = disconnectWallet();
     if (!result.success && result.error) {
-      console.error('Disconnection failed:', result.error);
+      console.error("Disconnection failed:", result.error);
     }
   };
 
   // Check if current network is supported
-  const isCurrentNetworkSupported = chainId ? isSupportedNetwork(chainId) : true;
+  const isCurrentNetworkSupported = chainId
+    ? isSupportedNetwork(chainId)
+    : true;
 
   // Compact view for smaller spaces
   if (compact) {
@@ -147,8 +153,18 @@ const WalletConnect = ({ showBalance = true, showNetwork = true, compact = false
                 className="text-gray-500 hover:text-gray-700 transition-colors"
                 title="Copy Address"
               >
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                  />
                 </svg>
               </button>
             </div>
@@ -159,11 +175,13 @@ const WalletConnect = ({ showBalance = true, showNetwork = true, compact = false
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-600">Network:</span>
               <div className="flex items-center space-x-2">
-                <span className={`text-sm px-2 py-1 rounded-full ${
-                  isCurrentNetworkSupported 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-red-100 text-red-800'
-                }`}>
+                <span
+                  className={`text-sm px-2 py-1 rounded-full ${
+                    isCurrentNetworkSupported
+                      ? "bg-green-100 text-green-800"
+                      : "bg-red-100 text-red-800"
+                  }`}
+                >
                   {SUPPORTED_NETWORKS[chainId] || `Chain ID: ${chainId}`}
                 </span>
                 {!isCurrentNetworkSupported && (
@@ -173,7 +191,11 @@ const WalletConnect = ({ showBalance = true, showNetwork = true, compact = false
                     className="text-orange-600 hover:text-orange-800 transition-colors disabled:opacity-50"
                     title="Switch to Private Network"
                   >
-                    <Cog6ToothIcon className={`h-4 w-4 ${isSwitchingNetwork ? 'animate-spin' : ''}`} />
+                    <Cog6ToothIcon
+                      className={`h-4 w-4 ${
+                        isSwitchingNetwork ? "animate-spin" : ""
+                      }`}
+                    />
                   </button>
                 )}
               </div>
@@ -185,16 +207,16 @@ const WalletConnect = ({ showBalance = true, showNetwork = true, compact = false
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-600">Balance:</span>
               <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium">
-                  {balance} ETH
-                </span>
+                <span className="text-sm font-medium">{balance} ETH</span>
                 <button
                   onClick={handleRefreshBalance}
                   disabled={isRefreshing}
                   className="text-gray-500 hover:text-gray-700 transition-colors disabled:opacity-50"
                   title="Refresh Balance"
                 >
-                  <ArrowPathIcon className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                  <ArrowPathIcon
+                    className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
+                  />
                 </button>
               </div>
             </div>
@@ -207,16 +229,19 @@ const WalletConnect = ({ showBalance = true, showNetwork = true, compact = false
             <div className="flex items-start space-x-2">
               <ExclamationTriangleIcon className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
-                <p className="text-sm font-medium text-orange-800">Wrong Network</p>
+                <p className="text-sm font-medium text-orange-800">
+                  Wrong Network
+                </p>
                 <p className="text-xs text-orange-600 mt-1">
-                  Please switch to IPGuardian Private Network (Chain ID: 40404040)
+                  Please switch to IPGuardian Private Network (Chain ID:
+                  40404040)
                 </p>
                 <button
                   onClick={handleSwitchNetwork}
                   disabled={isSwitchingNetwork}
                   className="mt-2 bg-orange-600 hover:bg-orange-700 disabled:bg-orange-400 text-white px-3 py-1 rounded text-xs transition-colors"
                 >
-                  {isSwitchingNetwork ? 'Switching...' : 'Switch Network'}
+                  {isSwitchingNetwork ? "Switching..." : "Switch Network"}
                 </button>
               </div>
             </div>
@@ -249,8 +274,18 @@ const WalletConnect = ({ showBalance = true, showNetwork = true, compact = false
               className="inline-flex items-center space-x-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg transition-colors"
             >
               <span>Install MetaMask</span>
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                />
               </svg>
             </a>
           </div>
@@ -266,19 +301,22 @@ const WalletConnect = ({ showBalance = true, showNetwork = true, compact = false
               Connect Your Wallet
             </h3>
             <p className="text-sm text-gray-600 mb-4">
-              Connect to IPGuardian Private Network to register your intellectual property.
+              Connect to IPGuardian Private Network to register your
+              intellectual property.
             </p>
-            
+
             {/* Private Network Info */}
             <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-left">
-              <p className="text-sm font-medium text-blue-800 mb-2">Network Requirements:</p>
+              <p className="text-sm font-medium text-blue-800 mb-2">
+                Network Requirements:
+              </p>
               <ul className="text-xs text-blue-600 space-y-1">
                 <li>• Chain ID: 40404040</li>
                 <li>• RPC: http://127.0.0.1:8545</li>
                 <li>• Ensure your private blockchain is running</li>
               </ul>
             </div>
-            
+
             {error && (
               <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
                 <div className="flex items-center space-x-2">

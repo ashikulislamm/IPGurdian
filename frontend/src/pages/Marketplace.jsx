@@ -8,7 +8,7 @@ import {
   UserIcon,
   LinkIcon,
   TagIcon,
-  DocumentTextIcon
+  DocumentTextIcon,
 } from "@heroicons/react/24/outline";
 import { ResponsiveNavbar } from "../components/Navbar";
 import { ResponsiveFooter } from "../components/Footer";
@@ -27,19 +27,19 @@ const Marketplace = () => {
     try {
       setLoading(true);
       const params = new URLSearchParams();
-      
+
       if (filter !== "all") {
         params.append("status", filter);
       }
-      
+
       if (typeFilter !== "all") {
         params.append("ipType", typeFilter);
       }
-      
+
       if (searchTerm) {
         params.append("search", searchTerm);
       }
-      
+
       params.append("limit", "50");
 
       const apiUrl = `http://localhost:5000/api/ip/marketplace?${params}`;
@@ -53,23 +53,27 @@ const Marketplace = () => {
       if (!response.ok) {
         const errorText = await response.text();
         console.error("❌ HTTP error response:", errorText);
-        throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+        throw new Error(
+          `HTTP error! status: ${response.status} - ${errorText}`
+        );
       }
 
       const result = await response.json();
       console.log("📦 API result:", result);
-      
+
       if (result.success) {
         console.log("✅ Found", result.data?.length || 0, "public IPs");
-        
+
         // Format dates for display
-        const formattedIPs = result.data.map(ip => ({
+        const formattedIPs = result.data.map((ip) => ({
           ...ip,
-          formattedDate: new Date(ip.createdAt || ip.registrationDate).toLocaleDateString("en-US", {
+          formattedDate: new Date(
+            ip.createdAt || ip.registrationDate
+          ).toLocaleDateString("en-US", {
             year: "numeric",
-            month: "short", 
-            day: "numeric"
-          })
+            month: "short",
+            day: "numeric",
+          }),
         }));
         setPublicIPs(formattedIPs);
       } else {
@@ -178,9 +182,21 @@ const Marketplace = () => {
                     onClick={() => setShowDetails(false)}
                     className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-full transition-all duration-300 self-start sm:self-center"
                   >
-                    <span className="hidden sm:inline">Back to Marketplace</span>
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    <span className="hidden sm:inline">
+                      Back to Marketplace
+                    </span>
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
                     </svg>
                   </button>
                 </div>
@@ -222,18 +238,18 @@ const Marketplace = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Basic Info */}
                   <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                    <h3 className="text-xl font-semibold text-[#2d336b] flex items-center gap-2 border-b border-gray-100 pb-3 mb-4">
+                    <h3 className="text-xl font-semibold text-[#2d336b] flex items-center justify-center gap-2 border-b border-gray-100 pb-3 mb-6">
                       <UserIcon className="h-6 w-6 text-[#7886c7]" />
                       IP Information
                     </h3>
-                    
-                    <div className="space-y-4">
+
+                    <div className="space-y-6 text-center">
                       <div>
-                        <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                        <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide block mb-2">
                           Type
                         </label>
-                        <div className="flex items-center gap-3 text-gray-800 mt-1">
-                          <span className="text-2xl">
+                        <div className="flex items-center justify-center gap-3 text-gray-800">
+                          <span className="text-xl">
                             {getIPTypeIcon(selectedIP.ipType)}
                           </span>
                           <span className="font-semibold capitalize text-lg">
@@ -241,35 +257,41 @@ const Marketplace = () => {
                           </span>
                         </div>
                       </div>
-                      
+
                       <div>
-                        <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                        <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide block mb-2">
                           Category
                         </label>
-                        <p className="text-gray-800 font-semibold text-lg mt-1">
+                        <p className="text-gray-800 font-semibold text-lg">
                           {selectedIP.category}
-                        </p>
-                      </div>
-                      
-                      <div>
-                        <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
-                          Registration Date
-                        </label>
-                        <p className="text-gray-800 font-semibold flex items-center gap-2 text-base mt-1">
-                          <ClockIcon className="h-5 w-5 text-gray-500" />
-                          {selectedIP.formattedDate || new Date(selectedIP.createdAt || selectedIP.registrationDate).toLocaleDateString("en-US", {
-                            year: "numeric",
-                            month: "short", 
-                            day: "numeric"
-                          })}
                         </p>
                       </div>
 
                       <div>
-                        <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                        <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide block mb-2">
+                          Registration Date
+                        </label>
+                        <div className="flex items-center justify-center gap-2 text-gray-800 font-semibold text-md">
+                          <ClockIcon className="h-5 w-5 text-gray-500" />
+                          <span>
+                            {selectedIP.formattedDate ||
+                              new Date(
+                                selectedIP.createdAt ||
+                                  selectedIP.registrationDate
+                              ).toLocaleDateString("en-US", {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                              })}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide block mb-2">
                           Creator
                         </label>
-                        <div className="bg-gray-50 p-3 rounded-lg border mt-1">
+                        <div className="bg-gray-50 p-4 rounded-lg border max-w-md mx-auto">
                           <p className="text-gray-800 font-mono text-sm break-all">
                             {selectedIP.creator}
                           </p>
@@ -280,53 +302,53 @@ const Marketplace = () => {
 
                   {/* Blockchain Info */}
                   <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                    <h3 className="text-xl font-semibold text-[#2d336b] flex items-center gap-2 border-b border-gray-100 pb-3 mb-4">
+                    <h3 className="text-xl font-semibold text-[#2d336b] flex items-center justify-center gap-2 border-b border-gray-100 pb-3 mb-6">
                       <LinkIcon className="h-6 w-6 text-[#7886c7]" />
                       Blockchain Verification
                     </h3>
-                    
+
                     {selectedIP.transactionHash ? (
-                      <div className="space-y-4">
+                      <div className="space-y-6 text-center">
                         <div>
-                          <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                          <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide block mb-2">
                             Transaction Hash
                           </label>
-                          <div className="bg-gray-50 p-3 rounded-lg border mt-1">
+                          <div className="bg-gray-50 p-4 rounded-lg border max-w-md mx-auto">
                             <p className="text-gray-800 font-mono text-sm break-all">
                               {selectedIP.transactionHash}
                             </p>
                           </div>
                         </div>
-                        
+
                         {selectedIP.blockNumber && (
                           <div>
-                            <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                            <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide block mb-2">
                               Block Number
                             </label>
-                            <p className="text-gray-800 font-mono font-bold text-lg mt-1">
+                            <p className="text-gray-800 font-mono font-bold text-2xl">
                               #{selectedIP.blockNumber}
                             </p>
                           </div>
                         )}
 
-                        <div className="pt-4">
+                        <div className="pt-6">
                           <a
                             href={`https://etherscan.io/tx/${selectedIP.transactionHash}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                            className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-4 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 text-lg font-semibold"
                           >
-                            <LinkIcon className="h-5 w-5" />
+                            <LinkIcon className="h-6 w-6" />
                             View on Blockchain
                           </a>
                         </div>
                       </div>
                     ) : (
-                      <div className="text-center py-8">
-                        <div className="text-gray-400 mb-2">
-                          <LinkIcon className="h-12 w-12 mx-auto" />
+                      <div className="text-center py-12">
+                        <div className="text-gray-400 mb-4">
+                          <LinkIcon className="h-16 w-16 mx-auto" />
                         </div>
-                        <p className="text-gray-500">
+                        <p className="text-gray-500 text-lg">
                           Blockchain verification pending
                         </p>
                       </div>
@@ -359,8 +381,9 @@ const Marketplace = () => {
               IP Marketplace
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Discover and explore intellectual property registered on our platform. 
-              All IPs listed here are verified on the blockchain and made publicly available by their creators.
+              Discover and explore intellectual property registered on our
+              platform. All IPs listed here are verified on the blockchain and
+              made publicly available by their creators.
             </p>
           </div>
 
@@ -411,114 +434,128 @@ const Marketplace = () => {
 
           {/* Results */}
           {loading ? (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#7886c7] mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading marketplace...</p>
+            <div className="text-center py-16">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#7886c7] mx-auto mb-6"></div>
+              <p className="text-gray-600 text-lg">Loading marketplace...</p>
             </div>
           ) : publicIPs.length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-2xl shadow-sm">
-              <div className="text-gray-400 mb-4">
-                <EyeIcon className="h-16 w-16 mx-auto" />
+            <div className="flex justify-center">
+              <div className="text-center py-16 bg-white rounded-3xl shadow-sm max-w-md mx-auto">
+                <div className="text-gray-400 mb-6">
+                  <EyeIcon className="h-20 w-20 mx-auto" />
+                </div>
+                <h3 className="text-2xl font-semibold text-gray-900 mb-4">
+                  No public IPs found
+                </h3>
+                <p className="text-gray-600 px-4">
+                  {searchTerm || filter !== "all" || typeFilter !== "all"
+                    ? "Try adjusting your filters to see more results"
+                    : "No intellectual properties have been made public yet"}
+                </p>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                No public IPs found
-              </h3>
-              <p className="text-gray-600">
-                {searchTerm || filter !== "all" || typeFilter !== "all"
-                  ? "Try adjusting your filters to see more results"
-                  : "No intellectual properties have been made public yet"}
-              </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {publicIPs.map((ip) => (
-                <motion.div
-                  key={ip._id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer"
-                  onClick={() => viewIPDetails(ip)}
-                >
-                  <div className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="text-2xl">
-                            {getIPTypeIcon(ip.ipType)}
-                          </span>
-                          <span className="text-sm font-medium text-gray-600 capitalize">
-                            {ip.ipType}
-                          </span>
-                        </div>
-                        <h3 className="font-bold text-lg text-[#2d336b] mb-2 overflow-hidden">
-                          {truncateText(ip.title, 50)}
-                        </h3>
-                        <p className="text-gray-600 text-sm mb-3">
-                          {truncateText(ip.description, 120)}
-                        </p>
-                      </div>
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                          ip.status
-                        )}`}
-                      >
-                        {ip.status}
-                      </span>
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="flex items-center text-sm text-gray-600">
-                        <span className="font-medium">Category:</span>
-                        <span className="ml-2">{ip.category}</span>
-                      </div>
-                      
-                      <div className="flex items-center text-sm text-gray-600">
-                        <ClockIcon className="h-4 w-4 mr-1" />
-                        <span>{ip.formattedDate}</span>
-                      </div>
-
-                      {ip.tags && (
-                        <div className="flex flex-wrap gap-1 mt-3">
-                          {ip.tags.split(",").slice(0, 3).map((tag, index) => (
+            <div className="flex justify-center">
+              <div className="w-full max-w-7xl">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
+                  {publicIPs.map((ip) => (
+                    <motion.div
+                      key={ip._id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="w-full max-w-sm mx-auto bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
+                      onClick={() => viewIPDetails(ip)}
+                    >
+                      <div className="p-8">
+                        <div className="text-center mb-6">
+                          <div className="flex items-center justify-center gap-2 mb-3">
+                            <span className="text-3xl">
+                              {getIPTypeIcon(ip.ipType)}
+                            </span>
+                            <span className="text-sm font-medium text-gray-600 capitalize">
+                              {ip.ipType}
+                            </span>
+                          </div>
+                          <div className="flex justify-center mb-4">
                             <span
-                              key={index}
-                              className="bg-[#f0f2ff] text-[#2d336b] px-2 py-1 rounded text-xs font-medium"
+                              className={`px-4 py-2 rounded-full text-xs font-medium ${getStatusColor(
+                                ip.status
+                              )}`}
                             >
-                              {tag.trim()}
+                              {ip.status}
                             </span>
-                          ))}
-                          {ip.tags.split(",").length > 3 && (
-                            <span className="text-xs text-gray-500 px-2 py-1">
-                              +{ip.tags.split(",").length - 3} more
+                          </div>
+                          <h3 className="font-bold text-xl text-[#2d336b] mb-3 leading-tight">
+                            {truncateText(ip.title, 50)}
+                          </h3>
+                          <p className="text-gray-600 text-sm leading-relaxed mb-4">
+                            {truncateText(ip.description, 120)}
+                          </p>
+                        </div>
+
+                        <div className="space-y-3 text-center">
+                          <div className="flex items-center justify-center text-sm text-gray-600">
+                            <span className="font-medium">Category:</span>
+                            <span className="ml-2 text-[#2d336b] font-semibold">
+                              {ip.category}
                             </span>
+                          </div>
+
+                          <div className="flex items-center justify-center text-sm text-gray-600">
+                            <ClockIcon className="h-4 w-4 mr-1" />
+                            <span>{ip.formattedDate}</span>
+                          </div>
+
+                          {ip.tags && (
+                            <div className="flex flex-wrap gap-2 mt-4 justify-center">
+                              {ip.tags
+                                .split(",")
+                                .slice(0, 3)
+                                .map((tag, index) => (
+                                  <span
+                                    key={index}
+                                    className="bg-[#f0f2ff] text-[#2d336b] px-3 py-1 rounded-full text-xs font-medium"
+                                  >
+                                    {tag.trim()}
+                                  </span>
+                                ))}
+                              {ip.tags.split(",").length > 3 && (
+                                <span className="text-xs text-gray-500 px-2 py-1">
+                                  +{ip.tags.split(",").length - 3} more
+                                </span>
+                              )}
+                            </div>
                           )}
                         </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
-                    <div className="flex items-center justify-between">
-                      <div className="text-xs text-gray-500 font-mono truncate">
-                        {ip.creator.slice(0, 10)}...{ip.creator.slice(-8)}
                       </div>
-                      <button className="text-[#7886c7] hover:text-[#2d336b] text-sm font-medium transition-colors">
-                        View Details →
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
+
+                      <div className="px-8 py-6 bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200">
+                        <div className="text-center space-y-3">
+                          <div className="text-xs text-gray-500 font-mono">
+                            Creator: {ip.creator.slice(0, 8)}...
+                            {ip.creator.slice(-6)}
+                          </div>
+                          <button className="text-[#7886c7] hover:text-[#2d336b] text-sm font-semibold transition-all duration-200 hover:scale-105">
+                            View Details →
+                          </button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
 
           {/* Results Count */}
           {!loading && publicIPs.length > 0 && (
-            <div className="text-center mt-8">
-              <p className="text-gray-600">
-                Showing {publicIPs.length} public intellectual properties
-              </p>
+            <div className="text-center mt-12">
+              <div className="bg-white rounded-2xl shadow-sm py-6 px-8 inline-block">
+                <p className="text-gray-600 text-lg font-medium">
+                  Showing {publicIPs.length} public intellectual properties
+                </p>
+              </div>
             </div>
           )}
         </div>

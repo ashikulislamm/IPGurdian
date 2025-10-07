@@ -37,9 +37,7 @@ export const InfoSection = () => {
             </div>
           </div>
           <h3 className="font-bold text-lg mb-1">Email us</h3>
-          <p>
-            Email us for general queries
-          </p>
+          <p>Email us for general queries</p>
           <p className="text-[#7886c7] font-semibold mt-1">
             hello@ipgurdian.com
           </p>

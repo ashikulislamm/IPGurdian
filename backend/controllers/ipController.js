@@ -1,6 +1,6 @@
-import IP from '../models/IPModel.js';
-import User from '../models/UserModel.js';
-import mongoose from 'mongoose';
+import IP from "../models/IPModel.js";
+import User from "../models/UserModel.js";
+import mongoose from "mongoose";
 
 // Register a new IP
 const registerIP = async (req, res) => {
@@ -20,14 +20,15 @@ const registerIP = async (req, res) => {
       fileName,
       fileSize,
       fileHash,
-      isPublic
+      isPublic,
     } = req.body;
 
     // Validate required fields
     if (!title || !description || !ipType || !category || !creator) {
       return res.status(400).json({
         success: false,
-        error: 'Missing required fields: title, description, ipType, category, creator'
+        error:
+          "Missing required fields: title, description, ipType, category, creator",
       });
     }
 
@@ -37,7 +38,7 @@ const registerIP = async (req, res) => {
       description: description.trim(),
       ipType,
       category: category.trim(),
-      tags: tags || '',
+      tags: tags || "",
       userId,
       creator,
       transactionHash: transactionHash || null,
@@ -48,29 +49,28 @@ const registerIP = async (req, res) => {
       fileSize: fileSize || null,
       fileHash: fileHash || null,
       isPublic: isPublic || false,
-      status: transactionHash ? 'confirmed' : 'pending'
+      status: transactionHash ? "confirmed" : "pending",
     });
 
     await newIP.save();
 
     res.status(201).json({
       success: true,
-      message: 'IP registered successfully',
+      message: "IP registered successfully",
       data: {
         id: newIP._id,
         title: newIP.title,
         ipType: newIP.ipType,
         status: newIP.status,
         registrationDate: newIP.registrationDate,
-        transactionHash: newIP.transactionHash
-      }
+        transactionHash: newIP.transactionHash,
+      },
     });
-
   } catch (error) {
-    console.error('Error registering IP:', error);
+    console.error("Error registering IP:", error);
     res.status(500).json({
       success: false,
-      error: 'Failed to register IP'
+      error: "Failed to register IP",
     });
   }
 };
@@ -83,20 +83,20 @@ const getUserIPs = async (req, res) => {
 
     // Build filter
     const filter = { userId };
-    
-    if (status && status !== 'all') {
+
+    if (status && status !== "all") {
       filter.status = status;
     }
-    
-    if (ipType && ipType !== 'all') {
+
+    if (ipType && ipType !== "all") {
       filter.ipType = ipType;
     }
-    
+
     if (search) {
       filter.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { category: { $regex: search, $options: 'i' } }
+        { title: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+        { category: { $regex: search, $options: "i" } },
       ];
     }
 
@@ -114,23 +114,25 @@ const getUserIPs = async (req, res) => {
     const total = await IP.countDocuments(filter);
 
     // Format response
-    const formattedIPs = ips.map(ip => ({
+    const formattedIPs = ips.map((ip) => ({
       id: ip._id,
       title: ip.title,
-      description: ip.description.substring(0, 150) + (ip.description.length > 150 ? '...' : ''),
+      description:
+        ip.description.substring(0, 150) +
+        (ip.description.length > 150 ? "..." : ""),
       ipType: ip.ipType,
       category: ip.category,
       status: ip.status,
       isPublic: ip.isPublic,
       registrationDate: ip.registrationDate,
-      formattedDate: ip.registrationDate.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
+      formattedDate: ip.registrationDate.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
       }),
       transactionHash: ip.transactionHash,
       blockNumber: ip.blockNumber,
-      ipId: ip.ipId
+      ipId: ip.ipId,
     }));
 
     res.json({
@@ -141,16 +143,15 @@ const getUserIPs = async (req, res) => {
           current: parseInt(page),
           total: Math.ceil(total / limit),
           count: formattedIPs.length,
-          totalIPs: total
-        }
-      }
+          totalIPs: total,
+        },
+      },
     });
-
   } catch (error) {
-    console.error('Error getting user IPs:', error);
+    console.error("Error getting user IPs:", error);
     res.status(500).json({
       success: false,
-      error: 'Failed to retrieve IPs'
+      error: "Failed to retrieve IPs",
     });
   }
 };
@@ -166,7 +167,7 @@ const getIPDetails = async (req, res) => {
     if (!ip) {
       return res.status(404).json({
         success: false,
-        error: 'IP not found'
+        error: "IP not found",
       });
     }
 
@@ -183,36 +184,35 @@ const getIPDetails = async (req, res) => {
       isPublic: ip.isPublic,
       registrationDate: ip.registrationDate,
       lastUpdated: ip.lastUpdated,
-      formattedDate: ip.registrationDate.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+      formattedDate: ip.registrationDate.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
       }),
       blockchain: {
         transactionHash: ip.transactionHash,
         blockNumber: ip.blockNumber,
         gasUsed: ip.gasUsed,
-        ipId: ip.ipId
+        ipId: ip.ipId,
       },
       file: {
         name: ip.fileName,
         size: ip.fileSize,
-        hash: ip.fileHash
-      }
+        hash: ip.fileHash,
+      },
     };
 
     res.json({
       success: true,
-      data: detailedIP
+      data: detailedIP,
     });
-
   } catch (error) {
-    console.error('Error getting IP details:', error);
+    console.error("Error getting IP details:", error);
     res.status(500).json({
       success: false,
-      error: 'Failed to retrieve IP details'
+      error: "Failed to retrieve IP details",
     });
   }
 };
@@ -229,7 +229,7 @@ const updateIPStatus = async (req, res) => {
     if (!ip) {
       return res.status(404).json({
         success: false,
-        error: 'IP not found'
+        error: "IP not found",
       });
     }
 
@@ -239,22 +239,21 @@ const updateIPStatus = async (req, res) => {
     if (blockNumber) ip.blockNumber = blockNumber;
     if (gasUsed) ip.gasUsed = gasUsed;
     if (ipId) ip.ipId = ipId;
-    
+
     ip.lastUpdated = new Date();
 
     await ip.save();
 
     res.json({
       success: true,
-      message: 'IP updated successfully',
-      data: ip.getSummary()
+      message: "IP updated successfully",
+      data: ip.getSummary(),
     });
-
   } catch (error) {
-    console.error('Error updating IP:', error);
+    console.error("Error updating IP:", error);
     res.status(500).json({
       success: false,
-      error: 'Failed to update IP'
+      error: "Failed to update IP",
     });
   }
 };
@@ -270,20 +269,19 @@ const deleteIP = async (req, res) => {
     if (!ip) {
       return res.status(404).json({
         success: false,
-        error: 'IP not found'
+        error: "IP not found",
       });
     }
 
     res.json({
       success: true,
-      message: 'IP deleted successfully'
+      message: "IP deleted successfully",
     });
-
   } catch (error) {
-    console.error('Error deleting IP:', error);
+    console.error("Error deleting IP:", error);
     res.status(500).json({
       success: false,
-      error: 'Failed to delete IP'
+      error: "Failed to delete IP",
     });
   }
 };
@@ -300,19 +298,19 @@ const getIPStats = async (req, res) => {
           _id: null,
           total: { $sum: 1 },
           confirmed: {
-            $sum: { $cond: [{ $eq: ["$status", "confirmed"] }, 1, 0] }
+            $sum: { $cond: [{ $eq: ["$status", "confirmed"] }, 1, 0] },
           },
           pending: {
-            $sum: { $cond: [{ $eq: ["$status", "pending"] }, 1, 0] }
+            $sum: { $cond: [{ $eq: ["$status", "pending"] }, 1, 0] },
           },
           failed: {
-            $sum: { $cond: [{ $eq: ["$status", "failed"] }, 1, 0] }
+            $sum: { $cond: [{ $eq: ["$status", "failed"] }, 1, 0] },
           },
           public: {
-            $sum: { $cond: ["$isPublic", 1, 0] }
-          }
-        }
-      }
+            $sum: { $cond: ["$isPublic", 1, 0] },
+          },
+        },
+      },
     ]);
 
     const result = stats[0] || {
@@ -320,7 +318,7 @@ const getIPStats = async (req, res) => {
       confirmed: 0,
       pending: 0,
       failed: 0,
-      public: 0
+      public: 0,
     };
 
     // Get type breakdown
@@ -329,13 +327,13 @@ const getIPStats = async (req, res) => {
       {
         $group: {
           _id: "$ipType",
-          count: { $sum: 1 }
-        }
-      }
+          count: { $sum: 1 },
+        },
+      },
     ]);
 
     const typeBreakdown = {};
-    typeStats.forEach(stat => {
+    typeStats.forEach((stat) => {
       typeBreakdown[stat._id] = stat.count;
     });
 
@@ -343,15 +341,14 @@ const getIPStats = async (req, res) => {
       success: true,
       data: {
         overview: result,
-        byType: typeBreakdown
-      }
+        byType: typeBreakdown,
+      },
     });
-
   } catch (error) {
-    console.error('Error getting IP stats:', error);
+    console.error("Error getting IP stats:", error);
     res.status(500).json({
       success: false,
-      error: 'Failed to retrieve statistics'
+      error: "Failed to retrieve statistics",
     });
   }
 };
@@ -360,7 +357,7 @@ const getIPStats = async (req, res) => {
 const getUserStats = async (req, res) => {
   try {
     const userId = req.user.id;
-    console.log('🔍 Getting user stats for userId:', userId);
+    console.log("🔍 Getting user stats for userId:", userId);
 
     // Get basic IP statistics
     const stats = await IP.aggregate([
@@ -370,28 +367,28 @@ const getUserStats = async (req, res) => {
           _id: null,
           totalIPs: { $sum: 1 },
           confirmedIPs: {
-            $sum: { $cond: [{ $eq: ["$status", "confirmed"] }, 1, 0] }
+            $sum: { $cond: [{ $eq: ["$status", "confirmed"] }, 1, 0] },
           },
           pendingIPs: {
-            $sum: { $cond: [{ $eq: ["$status", "pending"] }, 1, 0] }
+            $sum: { $cond: [{ $eq: ["$status", "pending"] }, 1, 0] },
           },
           failedIPs: {
-            $sum: { $cond: [{ $eq: ["$status", "failed"] }, 1, 0] }
-          }
-        }
-      }
+            $sum: { $cond: [{ $eq: ["$status", "failed"] }, 1, 0] },
+          },
+        },
+      },
     ]);
 
-    console.log('📊 Raw stats from database:', stats);
+    console.log("📊 Raw stats from database:", stats);
 
     const result = stats[0] || {
       totalIPs: 0,
       confirmedIPs: 0,
       pendingIPs: 0,
-      failedIPs: 0
+      failedIPs: 0,
     };
 
-    console.log('📈 Processed result:', result);
+    console.log("📈 Processed result:", result);
 
     // For now, transferredIPs will be 0 since we don't have transfer functionality yet
     // This can be updated later when transfer functionality is implemented
@@ -403,17 +400,16 @@ const getUserStats = async (req, res) => {
       confirmedIPs: result.confirmedIPs,
       pendingIPs: result.pendingIPs,
       failedIPs: result.failedIPs,
-      transferredIPs: transferredIPs
+      transferredIPs: transferredIPs,
     };
 
-    console.log('✅ Sending response:', responseData);
+    console.log("✅ Sending response:", responseData);
     res.json(responseData);
-
   } catch (error) {
-    console.error('Error getting user stats:', error);
+    console.error("Error getting user stats:", error);
     res.status(500).json({
       success: false,
-      error: 'Failed to retrieve user statistics'
+      error: "Failed to retrieve user statistics",
     });
   }
 };
@@ -421,36 +417,36 @@ const getUserStats = async (req, res) => {
 // Get all public IPs for marketplace
 const getPublicIPs = async (req, res) => {
   try {
-    console.log('🎯 Marketplace API called with query params:', req.query);
-    
-    const { 
-      status, 
-      ipType, 
-      search, 
-      limit = 50, 
+    console.log("🎯 Marketplace API called with query params:", req.query);
+
+    const {
+      status,
+      ipType,
+      search,
+      limit = 50,
       page = 1,
-      sortBy = 'registrationDate',
-      sortOrder = 'desc'
+      sortBy = "registrationDate",
+      sortOrder = "desc",
     } = req.query;
 
     // Build query for public IPs only
     let query = { isPublic: true };
 
     // Add filters
-    if (status && status !== 'all') {
+    if (status && status !== "all") {
       query.status = status;
     }
 
-    if (ipType && ipType !== 'all') {
+    if (ipType && ipType !== "all") {
       query.ipType = ipType;
     }
 
     if (search) {
       query.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { category: { $regex: search, $options: 'i' } },
-        { tags: { $regex: search, $options: 'i' } }
+        { title: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+        { category: { $regex: search, $options: "i" } },
+        { tags: { $regex: search, $options: "i" } },
       ];
     }
 
@@ -461,23 +457,25 @@ const getPublicIPs = async (req, res) => {
 
     // Build sort object
     const sort = {};
-    sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
+    sort[sortBy] = sortOrder === "desc" ? -1 : 1;
 
-    console.log('🔍 Marketplace query:', JSON.stringify(query, null, 2));
-    console.log('📄 Pagination:', { limit: limitNum, page: pageNum, skip });
-    console.log('📊 Sort:', sort);
+    console.log("🔍 Marketplace query:", JSON.stringify(query, null, 2));
+    console.log("📄 Pagination:", { limit: limitNum, page: pageNum, skip });
+    console.log("📊 Sort:", sort);
 
     // First, let's see what all IPs exist
-    const allIPs = await IP.find({}).select('title isPublic status').limit(5);
-    console.log('🗂️ Sample IPs in database:', allIPs);
-    
+    const allIPs = await IP.find({}).select("title isPublic status").limit(5);
+    console.log("🗂️ Sample IPs in database:", allIPs);
+
     const totalAll = await IP.countDocuments({});
     const totalPublic = await IP.countDocuments({ isPublic: true });
-    console.log(`📊 Database stats - Total: ${totalAll}, Public: ${totalPublic}`);
+    console.log(
+      `📊 Database stats - Total: ${totalAll}, Public: ${totalPublic}`
+    );
 
     // Get total count for pagination
     const total = await IP.countDocuments(query);
-    
+
     // Fetch public IPs with pagination and sorting (no populate for marketplace)
     const publicIPs = await IP.find(query)
       .sort(sort)
@@ -485,16 +483,18 @@ const getPublicIPs = async (req, res) => {
       .limit(limitNum)
       .lean();
 
-    console.log(`✅ Found ${publicIPs.length} public IPs out of ${total} total matching query`);
-    
+    console.log(
+      `✅ Found ${publicIPs.length} public IPs out of ${total} total matching query`
+    );
+
     if (publicIPs.length > 0) {
-      console.log('🎯 First public IP:', {
+      console.log("🎯 First public IP:", {
         title: publicIPs[0].title,
         isPublic: publicIPs[0].isPublic,
         status: publicIPs[0].status,
-        creator: publicIPs[0].creator
+        creator: publicIPs[0].creator,
       });
-      console.log('🎯 Sample IP structure:', Object.keys(publicIPs[0]));
+      console.log("🎯 Sample IP structure:", Object.keys(publicIPs[0]));
     }
 
     res.json({
@@ -504,16 +504,15 @@ const getPublicIPs = async (req, res) => {
         current: pageNum,
         total: Math.ceil(total / limitNum),
         limit: limitNum,
-        totalItems: total
-      }
+        totalItems: total,
+      },
     });
-
   } catch (error) {
-    console.error('💥 Error fetching public IPs for marketplace:', error);
+    console.error("💥 Error fetching public IPs for marketplace:", error);
     res.status(500).json({
       success: false,
-      error: 'Failed to fetch marketplace IPs',
-      details: error.message
+      error: "Failed to fetch marketplace IPs",
+      details: error.message,
     });
   }
 };
@@ -526,5 +525,5 @@ export {
   deleteIP,
   getIPStats,
   getUserStats,
-  getPublicIPs
+  getPublicIPs,
 };

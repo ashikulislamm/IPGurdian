@@ -21,8 +21,12 @@ export const HeroSection = () => {
         <div className="hidden sm:mb-8 sm:flex sm:justify-center">
           <div className="relative rounded-full px-3 py-1 text-sm/6 text-gray-600 ring-1 ring-gray-900/10 hover:ring-gray-900/20">
             Secure, Transparent & Decentralized IP Management.{" "}
-            <a href="#" className="font-semibold" style={{color:"var(--Accent-color)"}}>
-              <span aria-hidden="true" className="absolute inset-0"/>
+            <a
+              href="#"
+              className="font-semibold"
+              style={{ color: "var(--Accent-color)" }}
+            >
+              <span aria-hidden="true" className="absolute inset-0" />
               Read more <span aria-hidden="true">&rarr;</span>
             </a>
           </div>
@@ -37,7 +41,8 @@ export const HeroSection = () => {
             blockchain technology — all in one secure platform.
           </p>
           <div className="mt-10 flex items-center justify-center gap-x-6">
-            <Link to="/register"
+            <Link
+              to="/register"
               href="#"
               className="text-sm/6 font-semibold bg-[#7886c7] text-white px-4 py-2 rounded-lg hover:bg-[#2D336B] transition-all duration-200"
             >
