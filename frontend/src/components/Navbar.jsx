@@ -15,7 +15,7 @@ import { useContext } from "react";
 const navigation = [
   { name: "Product", href: "#" },
   { name: "Features", href: "#" },
-  { name: "Marketplace", href: "#" },
+  { name: "Marketplace", href: "/marketplace" },
   { name: "Company", href: "#" },
   { name: "Contact", href: "/contact" },
 ];

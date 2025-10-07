@@ -418,6 +418,106 @@ const getUserStats = async (req, res) => {
   }
 };
 
+// Get all public IPs for marketplace
+const getPublicIPs = async (req, res) => {
+  try {
+    console.log('🎯 Marketplace API called with query params:', req.query);
+    
+    const { 
+      status, 
+      ipType, 
+      search, 
+      limit = 50, 
+      page = 1,
+      sortBy = 'registrationDate',
+      sortOrder = 'desc'
+    } = req.query;
+
+    // Build query for public IPs only
+    let query = { isPublic: true };
+
+    // Add filters
+    if (status && status !== 'all') {
+      query.status = status;
+    }
+
+    if (ipType && ipType !== 'all') {
+      query.ipType = ipType;
+    }
+
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } },
+        { category: { $regex: search, $options: 'i' } },
+        { tags: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    // Calculate pagination
+    const limitNum = parseInt(limit);
+    const pageNum = parseInt(page);
+    const skip = (pageNum - 1) * limitNum;
+
+    // Build sort object
+    const sort = {};
+    sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
+
+    console.log('🔍 Marketplace query:', JSON.stringify(query, null, 2));
+    console.log('📄 Pagination:', { limit: limitNum, page: pageNum, skip });
+    console.log('📊 Sort:', sort);
+
+    // First, let's see what all IPs exist
+    const allIPs = await IP.find({}).select('title isPublic status').limit(5);
+    console.log('🗂️ Sample IPs in database:', allIPs);
+    
+    const totalAll = await IP.countDocuments({});
+    const totalPublic = await IP.countDocuments({ isPublic: true });
+    console.log(`📊 Database stats - Total: ${totalAll}, Public: ${totalPublic}`);
+
+    // Get total count for pagination
+    const total = await IP.countDocuments(query);
+    
+    // Fetch public IPs with pagination and sorting (no populate for marketplace)
+    const publicIPs = await IP.find(query)
+      .sort(sort)
+      .skip(skip)
+      .limit(limitNum)
+      .lean();
+
+    console.log(`✅ Found ${publicIPs.length} public IPs out of ${total} total matching query`);
+    
+    if (publicIPs.length > 0) {
+      console.log('🎯 First public IP:', {
+        title: publicIPs[0].title,
+        isPublic: publicIPs[0].isPublic,
+        status: publicIPs[0].status,
+        creator: publicIPs[0].creator
+      });
+      console.log('🎯 Sample IP structure:', Object.keys(publicIPs[0]));
+    }
+
+    res.json({
+      success: true,
+      data: publicIPs,
+      pagination: {
+        current: pageNum,
+        total: Math.ceil(total / limitNum),
+        limit: limitNum,
+        totalItems: total
+      }
+    });
+
+  } catch (error) {
+    console.error('💥 Error fetching public IPs for marketplace:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch marketplace IPs',
+      details: error.message
+    });
+  }
+};
+
 export {
   registerIP,
   getUserIPs,
@@ -425,5 +525,6 @@ export {
   updateIPStatus,
   deleteIP,
   getIPStats,
-  getUserStats
+  getUserStats,
+  getPublicIPs
 };
