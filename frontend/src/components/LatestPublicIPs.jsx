@@ -5,7 +5,8 @@ import {
   ClockIcon,
   ArrowRightIcon,
   EyeIcon,
-  SparklesIcon
+  SparklesIcon,
+  DocumentTextIcon
 } from "@heroicons/react/24/outline";
 
 const LatestPublicIPs = () => {
@@ -174,9 +175,19 @@ const LatestPublicIPs = () => {
 
                 {/* Footer */}
                 <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-blue-50 border-t border-gray-100">
-                  <div className="text-center">
-                    <p className="text-xs text-gray-500 mb-2">Category</p>
-                    <p className="font-semibold text-[#2d336b]">{ip.category}</p>
+                  <div className="text-center space-y-3">
+                    <div>
+                      <p className="text-xs text-gray-500 mb-1">Category</p>
+                      <p className="font-semibold text-[#2d336b]">{ip.category}</p>
+                    </div>
+                    <Link
+                      to={`/ip-details/${ip._id}`}
+                      className="inline-flex items-center gap-2 bg-gradient-to-r from-[#2d336b] to-[#7886c7] text-white px-4 py-2 rounded-lg hover:from-[#1e2347] hover:to-[#5d6bb0] transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 text-sm font-medium group"
+                    >
+                      <DocumentTextIcon className="h-4 w-4" />
+                      <span>View Details</span>
+                      <ArrowRightIcon className="h-3 w-3 transition-transform duration-300 group-hover:translate-x-0.5" />
+                    </Link>
                   </div>
                 </div>
               </motion.div>

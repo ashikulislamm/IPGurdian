@@ -145,10 +145,10 @@ export const TermsAndConditions = () => {
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="flex items-center justify-center gap-4 mb-6"
+            className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 mb-4 sm:mb-6"
           >
-            <DocumentTextIcon className="h-16 w-16 text-white/90" />
-            <h1 className="text-4xl sm:text-6xl font-bold bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
+            <DocumentTextIcon className="h-10 w-10 sm:h-12 md:h-16 text-white/90" />
+            <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent text-center">
               Terms & Conditions
             </h1>
           </motion.div>
@@ -157,7 +157,7 @@ export const TermsAndConditions = () => {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="text-xl text-blue-100 max-w-3xl mx-auto leading-relaxed"
+            className="text-sm sm:text-base md:text-lg lg:text-xl text-blue-100 max-w-3xl mx-auto leading-relaxed px-4"
           >
             Welcome to IPGuardian. By accessing or using our platform, you agree
             to be bound by the following terms and conditions. Please read them
@@ -169,12 +169,16 @@ export const TermsAndConditions = () => {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.6 }}
-            className="mt-8 flex items-center justify-center gap-4 text-blue-200"
+            className="mt-6 sm:mt-8 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-blue-200 text-xs sm:text-sm px-4"
           >
-            <CalendarIcon className="h-5 w-5" />
-            <span>Last Updated: October 7, 2025</span>
-            <ClockIcon className="h-5 w-5 ml-4" />
-            <span>Effective Immediately</span>
+            <div className="flex items-center gap-1 sm:gap-2">
+              <CalendarIcon className="h-3 w-3 sm:h-4 md:h-5" />
+              <span>Last Updated: October 7, 2025</span>
+            </div>
+            <div className="flex items-center gap-1 sm:gap-2">
+              <ClockIcon className="h-3 w-3 sm:h-4 md:h-5" />
+              <span>Effective Immediately</span>
+            </div>
           </motion.div>
         </div>
       </motion.section>
@@ -187,24 +191,24 @@ export const TermsAndConditions = () => {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.8 }}
-            className="flex flex-wrap items-center justify-between gap-4 mb-12 p-6 bg-white rounded-2xl shadow-lg"
+            className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 mb-8 sm:mb-12 p-4 sm:p-6 bg-white rounded-2xl shadow-lg"
           >
-            <div className="flex items-center gap-3">
-              <CheckCircleIcon className="h-6 w-6 text-green-600" />
-              <span className="text-gray-700 font-medium">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <CheckCircleIcon className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
+              <span className="text-gray-700 font-medium text-sm sm:text-base">
                 Quick Navigation
               </span>
             </div>
-            <div className="flex gap-3">
+            <div className="flex gap-2 sm:gap-3">
               <button
                 onClick={expandAll}
-                className="px-4 py-2 bg-[#2d336b] text-white rounded-lg hover:bg-[#1e2347] transition-colors duration-200 text-sm font-medium"
+                className="px-3 py-2 sm:px-4 sm:py-2 bg-[#2d336b] text-white rounded-lg hover:bg-[#1e2347] transition-colors duration-200 text-xs sm:text-sm font-medium"
               >
                 Expand All
               </button>
               <button
                 onClick={collapseAll}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors duration-200 text-sm font-medium"
+                className="px-3 py-2 sm:px-4 sm:py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors duration-200 text-xs sm:text-sm font-medium"
               >
                 Collapse All
               </button>
@@ -228,7 +232,7 @@ export const TermsAndConditions = () => {
                   {/* Header */}
                   <button
                     onClick={() => toggleSection(section.id)}
-                    className="w-full p-6 text-left hover:bg-gray-50 transition-colors duration-200 focus:outline-none focus:ring-0 border-0 outline-0"
+                    className="w-full p-4 sm:p-6 text-left hover:bg-gray-50 transition-colors duration-200 focus:outline-none focus:ring-0 border-0 outline-0"
                     style={{
                       border: "none",
                       outline: "none",
@@ -236,24 +240,24 @@ export const TermsAndConditions = () => {
                     }}
                   >
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-[#2d336b] to-[#7886c7] rounded-xl flex items-center justify-center">
-                          <IconComponent className="h-6 w-6 text-white" />
+                      <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                        <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-gradient-to-br from-[#2d336b] to-[#7886c7] rounded-xl flex items-center justify-center">
+                          <IconComponent className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-white" />
                         </div>
-                        <div>
-                          <h2 className="text-xl font-bold text-[#2d336b] mb-1">
+                        <div className="flex-1 min-w-0">
+                          <h2 className="text-base sm:text-lg md:text-xl font-bold text-[#2d336b] mb-1 leading-tight">
                             {section.id}. {section.title}
                           </h2>
-                          <span className="inline-block px-3 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
+                          <span className="inline-block px-2 py-1 sm:px-3 sm:py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
                             {section.highlight}
                           </span>
                         </div>
                       </div>
-                      <div className="flex-shrink-0">
+                      <div className="flex-shrink-0 ml-2">
                         {isExpanded ? (
-                          <ChevronUpIcon className="h-6 w-6 text-gray-400" />
+                          <ChevronUpIcon className="h-5 w-5 sm:h-6 sm:w-6 text-gray-400" />
                         ) : (
-                          <ChevronDownIcon className="h-6 w-6 text-gray-400" />
+                          <ChevronDownIcon className="h-5 w-5 sm:h-6 sm:w-6 text-gray-400" />
                         )}
                       </div>
                     </div>
@@ -269,9 +273,9 @@ export const TermsAndConditions = () => {
                     transition={{ duration: 0.3, ease: "easeInOut" }}
                     className="overflow-hidden"
                   >
-                    <div className="px-6 pb-6 pt-0">
-                      <div className="pl-16">
-                        <ul className="space-y-4">
+                    <div className="px-4 sm:px-6 pb-4 sm:pb-6 pt-0">
+                      <div className="pl-8 sm:pl-12 md:pl-16">
+                        <ul className="space-y-3 sm:space-y-4">
                           {section.content.map((item, itemIndex) => (
                             <motion.li
                               key={itemIndex}
@@ -281,10 +285,10 @@ export const TermsAndConditions = () => {
                                 duration: 0.3,
                                 delay: itemIndex * 0.1,
                               }}
-                              className="flex items-start gap-3"
+                              className="flex items-start gap-2 sm:gap-3"
                             >
-                              <CheckCircleIcon className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                              <span className="text-gray-700 leading-relaxed">
+                              <CheckCircleIcon className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 mt-0.5 flex-shrink-0" />
+                              <span className="text-gray-700 leading-relaxed text-sm sm:text-base">
                                 {item}
                               </span>
                             </motion.li>
@@ -303,31 +307,31 @@ export const TermsAndConditions = () => {
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.6, delay: 1.2 }}
-            className="mt-16 p-8 bg-gradient-to-br from-[#2d336b] to-[#7886c7] rounded-2xl text-white"
+            className="mt-12 sm:mt-16 p-6 sm:p-8 bg-gradient-to-br from-[#2d336b] to-[#7886c7] rounded-2xl text-white"
           >
             <div className="text-center">
-              <ShieldCheckIcon className="h-16 w-16 mx-auto mb-6 text-white/90" />
-              <h3 className="text-2xl font-bold mb-4">
+              <ShieldCheckIcon className="h-12 w-12 sm:h-14 md:h-16 mx-auto mb-4 sm:mb-6 text-white/90" />
+              <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">
                 Agreement & Acceptance
               </h3>
-              <p className="text-blue-100 mb-8 max-w-2xl mx-auto leading-relaxed">
+              <p className="text-blue-100 mb-6 sm:mb-8 max-w-2xl mx-auto leading-relaxed text-sm sm:text-base px-4">
                 By using IPGuardian, you acknowledge that you have read,
                 understood, and agree to be bound by these terms and conditions.
                 If you do not agree with any part of these terms, please do not
                 use our services.
               </p>
 
-              <div className="flex items-center justify-center gap-4 mb-6">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-6 px-4">
                 <input
                   type="checkbox"
                   id="acceptTerms"
                   checked={acceptedTerms}
                   onChange={(e) => setAcceptedTerms(e.target.checked)}
-                  className="w-5 h-5 rounded border-2 border-white/50 bg-transparent focus:ring-2 focus:ring-white/50"
+                  className="w-4 h-4 sm:w-5 sm:h-5 rounded border-2 border-white/50 bg-transparent focus:ring-2 focus:ring-white/50"
                 />
                 <label
                   htmlFor="acceptTerms"
-                  className="text-white font-medium cursor-pointer"
+                  className="text-white font-medium cursor-pointer text-sm sm:text-base text-center"
                 >
                   I have read and agree to the Terms & Conditions
                 </label>
@@ -337,7 +341,7 @@ export const TermsAndConditions = () => {
                 whileHover={{ scale: acceptedTerms ? 1.05 : 1 }}
                 whileTap={{ scale: acceptedTerms ? 0.95 : 1 }}
                 disabled={!acceptedTerms}
-                className={`px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 ${
+                className={`px-6 py-3 sm:px-8 sm:py-4 rounded-xl font-semibold text-base sm:text-lg transition-all duration-300 ${
                   acceptedTerms
                     ? "bg-white text-[#2d336b] hover:bg-blue-50 shadow-lg"
                     : "bg-white/20 text-white/50 cursor-not-allowed"
@@ -355,16 +359,16 @@ export const TermsAndConditions = () => {
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.6, delay: 1.4 }}
-            className="mt-12 p-6 bg-white rounded-2xl shadow-lg border border-gray-100 text-center"
+            className="mt-8 sm:mt-12 p-4 sm:p-6 bg-white rounded-2xl shadow-lg border border-gray-100 text-center"
           >
-            <h4 className="text-lg font-semibold text-[#2d336b] mb-2">
+            <h4 className="text-base sm:text-lg font-semibold text-[#2d336b] mb-2">
               Questions about our Terms?
             </h4>
-            <p className="text-gray-600 mb-4">
+            <p className="text-gray-600 mb-4 text-sm sm:text-base px-2">
               If you have any questions about these Terms & Conditions, please
               don't hesitate to contact us.
             </p>
-            <div className="flex flex-wrap justify-center gap-4 text-sm">
+            <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-2 sm:gap-4 text-xs sm:text-sm">
               <span className="text-gray-500">📧 legal@ipguardian.com</span>
               <span className="text-gray-500">📞 +1 (555) 123-4567</span>
               <span className="text-gray-500">

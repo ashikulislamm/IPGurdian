@@ -476,8 +476,9 @@ const getPublicIPs = async (req, res) => {
     // Get total count for pagination
     const total = await IP.countDocuments(query);
 
-    // Fetch public IPs with pagination and sorting (no populate for marketplace)
+    // Fetch public IPs with pagination and sorting (populate user for marketplace)
     const publicIPs = await IP.find(query)
+      .populate('userId', 'name email')
       .sort(sort)
       .skip(skip)
       .limit(limitNum)

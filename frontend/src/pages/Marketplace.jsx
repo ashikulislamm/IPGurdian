@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import {
   MagnifyingGlassIcon,
   FunnelIcon,
@@ -14,13 +15,12 @@ import { ResponsiveNavbar } from "../components/Navbar";
 import { ResponsiveFooter } from "../components/Footer";
 
 const Marketplace = () => {
+  const navigate = useNavigate();
   const [publicIPs, setPublicIPs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
-  const [selectedIP, setSelectedIP] = useState(null);
-  const [showDetails, setShowDetails] = useState(false);
 
   // Fetch public IPs
   const fetchPublicIPs = async () => {
@@ -93,10 +93,9 @@ const Marketplace = () => {
     fetchPublicIPs();
   }, [filter, typeFilter, searchTerm]);
 
-  // View IP details
-  const viewIPDetails = (ip) => {
-    setSelectedIP(ip);
-    setShowDetails(true);
+  // Navigate to IP details page
+  const viewIPDetails = (ipId) => {
+    navigate(`/ip-details/${ipId}`);
   };
 
   const getStatusColor = (status) => {
@@ -134,235 +133,7 @@ const Marketplace = () => {
     return text.substr(0, maxLength) + "...";
   };
 
-  // IP Details Modal
-  if (showDetails && selectedIP) {
-    return (
-      <>
-        <ResponsiveNavbar />
-        <div className="mt-16"></div>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="min-h-screen bg-gray-50 py-8"
-        >
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
-              {/* Header */}
-              <div className="bg-gradient-to-r from-[#2d336b] to-[#7886c7] text-white p-6 md:p-8">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="flex-1">
-                    <h1 className="text-2xl md:text-3xl font-bold mb-2">
-                      {selectedIP.title}
-                    </h1>
-                    <div className="flex flex-wrap items-center gap-3 text-sm">
-                      <span className="flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full">
-                        <span className="text-lg">
-                          {getIPTypeIcon(selectedIP.ipType)}
-                        </span>
-                        {selectedIP.ipType}
-                      </span>
-                      <span className="bg-white/20 px-3 py-1 rounded-full">
-                        {selectedIP.category}
-                      </span>
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          selectedIP.status === "confirmed"
-                            ? "bg-green-500/90"
-                            : selectedIP.status === "pending"
-                            ? "bg-yellow-500/90"
-                            : "bg-red-500/90"
-                        }`}
-                      >
-                        {selectedIP.status}
-                      </span>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setShowDetails(false)}
-                    className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-full transition-all duration-300 self-start sm:self-center"
-                  >
-                    <span className="hidden sm:inline">
-                      Back to Marketplace
-                    </span>
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </button>
-                </div>
-              </div>
 
-              {/* Content */}
-              <div className="p-6 md:p-8 space-y-8">
-                {/* Description */}
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                  <h3 className="text-xl font-semibold mb-4 text-[#2d336b] flex items-center gap-2">
-                    <DocumentTextIcon className="h-6 w-6 text-[#7886c7]" />
-                    Description
-                  </h3>
-                  <p className="text-gray-700 leading-relaxed text-base">
-                    {selectedIP.description}
-                  </p>
-
-                  {selectedIP.tags && (
-                    <div className="mt-4 pt-4 border-t border-gray-100">
-                      <h4 className="text-sm font-semibold text-gray-600 mb-2 flex items-center gap-1">
-                        <TagIcon className="h-4 w-4" />
-                        Tags:
-                      </h4>
-                      <div className="flex flex-wrap gap-2">
-                        {selectedIP.tags.split(",").map((tag, index) => (
-                          <span
-                            key={index}
-                            className="bg-[#f0f2ff] text-[#2d336b] px-3 py-1 rounded-full text-sm font-medium"
-                          >
-                            {tag.trim()}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Information Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Basic Info */}
-                  <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                    <h3 className="text-xl font-semibold text-[#2d336b] flex items-center justify-center gap-2 border-b border-gray-100 pb-3 mb-6">
-                      <UserIcon className="h-6 w-6 text-[#7886c7]" />
-                      IP Information
-                    </h3>
-
-                    <div className="space-y-6 text-center">
-                      <div>
-                        <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide block mb-2">
-                          Type
-                        </label>
-                        <div className="flex items-center justify-center gap-3 text-gray-800">
-                          <span className="text-xl">
-                            {getIPTypeIcon(selectedIP.ipType)}
-                          </span>
-                          <span className="font-semibold capitalize text-lg">
-                            {selectedIP.ipType}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide block mb-2">
-                          Category
-                        </label>
-                        <p className="text-gray-800 font-semibold text-lg">
-                          {selectedIP.category}
-                        </p>
-                      </div>
-
-                      <div>
-                        <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide block mb-2">
-                          Registration Date
-                        </label>
-                        <div className="flex items-center justify-center gap-2 text-gray-800 font-semibold text-md">
-                          <ClockIcon className="h-5 w-5 text-gray-500" />
-                          <span>
-                            {selectedIP.formattedDate ||
-                              new Date(
-                                selectedIP.createdAt ||
-                                  selectedIP.registrationDate
-                              ).toLocaleDateString("en-US", {
-                                year: "numeric",
-                                month: "short",
-                                day: "numeric",
-                              })}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide block mb-2">
-                          Creator
-                        </label>
-                        <div className="bg-gray-50 p-4 rounded-lg border max-w-md mx-auto">
-                          <p className="text-gray-800 font-mono text-sm break-all">
-                            {selectedIP.creator}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Blockchain Info */}
-                  <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                    <h3 className="text-xl font-semibold text-[#2d336b] flex items-center justify-center gap-2 border-b border-gray-100 pb-3 mb-6">
-                      <LinkIcon className="h-6 w-6 text-[#7886c7]" />
-                      Blockchain Verification
-                    </h3>
-
-                    {selectedIP.transactionHash ? (
-                      <div className="space-y-6 text-center">
-                        <div>
-                          <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide block mb-2">
-                            Transaction Hash
-                          </label>
-                          <div className="bg-gray-50 p-4 rounded-lg border max-w-md mx-auto">
-                            <p className="text-gray-800 font-mono text-sm break-all">
-                              {selectedIP.transactionHash}
-                            </p>
-                          </div>
-                        </div>
-
-                        {selectedIP.blockNumber && (
-                          <div>
-                            <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide block mb-2">
-                              Block Number
-                            </label>
-                            <p className="text-gray-800 font-mono font-bold text-2xl">
-                              #{selectedIP.blockNumber}
-                            </p>
-                          </div>
-                        )}
-
-                        <div className="pt-6">
-                          <a
-                            href={`https://etherscan.io/tx/${selectedIP.transactionHash}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-4 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 text-lg font-semibold"
-                          >
-                            <LinkIcon className="h-6 w-6" />
-                            View on Blockchain
-                          </a>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="text-center py-12">
-                        <div className="text-gray-400 mb-4">
-                          <LinkIcon className="h-16 w-16 mx-auto" />
-                        </div>
-                        <p className="text-gray-500 text-lg">
-                          Blockchain verification pending
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-        <ResponsiveFooter />
-      </>
-    );
-  }
 
   return (
     <>
@@ -465,7 +236,7 @@ const Marketplace = () => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3 }}
                       className="w-full max-w-sm mx-auto bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
-                      onClick={() => viewIPDetails(ip)}
+                      onClick={() => viewIPDetails(ip._id)}
                     >
                       <div className="p-8">
                         <div className="text-center mb-6">
@@ -532,9 +303,17 @@ const Marketplace = () => {
 
                       <div className="px-8 py-6 bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200">
                         <div className="text-center space-y-3">
-                          <div className="text-xs text-gray-500 font-mono">
-                            Creator: {ip.creator.slice(0, 8)}...
-                            {ip.creator.slice(-6)}
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-center gap-2">
+                              <UserIcon className="h-4 w-4 text-gray-500" />
+                              <span className="text-sm font-semibold text-gray-700">
+                                {ip.userId?.name || 'Unknown Owner'}
+                              </span>
+                            </div>
+                            <div className="text-xs text-gray-500 font-mono">
+                              Wallet: {ip.creator.slice(0, 8)}...
+                              {ip.creator.slice(-6)}
+                            </div>
                           </div>
                           <button className="text-[#7886c7] hover:text-[#2d336b] text-sm font-semibold transition-all duration-200 hover:scale-105">
                             View Details →
