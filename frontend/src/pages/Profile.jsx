@@ -15,6 +15,8 @@ import {
   TrashIcon,
   LinkIcon,
   ClockIcon,
+  CloudArrowUpIcon,
+  DocumentIcon,
 } from "@heroicons/react/24/outline";
 import { motion } from "framer-motion";
 import { ResponsiveNavbar } from "../components/Navbar";
@@ -25,6 +27,8 @@ import WalletConnect from "../components/WalletConnect-private.jsx";
 import { BlockchainService } from "../services/blockchainService-private.js";
 import { useNavigate } from "react-router-dom";
 import UserAvatar from "../assets/profile.png";
+import { FileUpload, FileManager, FilePreview } from "../components/FileComponents";
+import fileUploadService from "../services/fileUploadService";
 
 const menuItems = [
   {
@@ -46,6 +50,11 @@ const menuItems = [
     name: "Registered IPs",
     icon: <FolderIcon className="h-5 w-5" />,
     key: "ips",
+  },
+  {
+    name: "File Manager",
+    icon: <CloudArrowUpIcon className="h-5 w-5" />,
+    key: "files",
   },
   {
     name: "IP Trading History",
@@ -333,6 +342,8 @@ const RegisterIPPanel = ({ setPopup, setRefreshTrigger }) => {
     category: "",
     tags: "",
     file: null,
+    selectedFiles: [],
+    uploadedFiles: [],
     isPublic: false,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -445,7 +456,65 @@ const RegisterIPPanel = ({ setPopup, setRefreshTrigger }) => {
     setIsSubmitting(true);
 
     try {
-      // Generate file hash if file is provided
+      // Upload selected files to IPFS first
+      let uploadedFiles = [];
+      
+      if (formData.selectedFiles && formData.selectedFiles.length > 0) {
+        console.log(`📁 Uploading ${formData.selectedFiles.length} file(s) to IPFS...`);
+        
+        try {
+          // Test backend connectivity first
+          console.log('🔍 Testing backend connectivity...');
+          const testResult = await fileUploadService.testConnection();
+          if (!testResult.success) {
+            throw new Error('Cannot connect to backend server. Please ensure the backend is running on port 5000.');
+          }
+          console.log('✅ Backend connectivity confirmed');
+          
+          for (let i = 0; i < formData.selectedFiles.length; i++) {
+            const file = formData.selectedFiles[i];
+            console.log(`Uploading file ${i + 1}/${formData.selectedFiles.length}: ${file.name}`);
+            
+            const result = await fileUploadService.uploadSingleFile(file, {
+              onProgress: (progress) => {
+                console.log(`Upload progress for ${file.name}: ${progress}%`);
+              }
+            });
+            
+            console.log('Upload result:', result);
+            console.log('Upload result data:', result.data);
+            console.log('Upload result data.file:', result.data?.file);
+            
+            if (result && result.success) {
+              uploadedFiles.push(result.data.file);
+            } else {
+              const errorMsg = result?.error || 'Unknown upload error';
+              console.error('Upload failed with result:', result);
+              throw new Error(errorMsg);
+            }
+          }
+          
+          console.log(`✅ Successfully uploaded ${uploadedFiles.length} file(s) to IPFS`);
+        } catch (uploadError) {
+          console.error("❌ File upload failed:", uploadError);
+          
+          // Check specific error types and provide helpful messages
+          if (uploadError.message.includes('Failed to fetch') || uploadError.message.includes('NetworkError')) {
+            throw new Error(`Network error: Cannot connect to backend server. Please ensure the backend is running on port 5000.`);
+          } else if (uploadError.message.includes('timeout')) {
+            throw new Error(`Upload timeout: The file upload took too long. Please try with smaller files or check your connection.`);
+          } else if (uploadError.message.includes('Token')) {
+            throw new Error(`Authentication error: Please log out and log back in, then try again.`);
+          } else if (uploadError.message.includes('IPFS')) {
+            throw new Error(`IPFS error: ${uploadError.message}. Please contact support if this persists.`);
+          }
+          
+          // Generic error with more details
+          throw new Error(`File upload failed: ${uploadError.message}`);
+        }
+      }
+
+      // Generate file hash if legacy file is provided
       const fileHash = formData.file
         ? await generateFileHash(formData.file)
         : null;
@@ -472,7 +541,7 @@ const RegisterIPPanel = ({ setPopup, setRefreshTrigger }) => {
 
       console.log("✅ Blockchain registration successful!", blockchainResult);
 
-      // Prepare IP data for backend with REAL blockchain data
+      // Prepare IP data for backend with REAL blockchain data and IPFS files
       const ipData = {
         title: formData.title,
         description: formData.description,
@@ -485,9 +554,22 @@ const RegisterIPPanel = ({ setPopup, setRefreshTrigger }) => {
         gasUsed: blockchainResult.gasUsed,
         ipId: blockchainResult.ipId,
         ipHash: blockchainResult.ipHash,
+        // Legacy file support (keep for backward compatibility)
         fileName: formData.file?.name || null,
         fileSize: formData.file?.size || null,
         fileHash: fileHash,
+        // New IPFS files support
+        attachedFiles: uploadedFiles.map(file => {
+          console.log('Mapping uploaded file:', file);
+          return {
+            name: file.name,
+            size: file.size,
+            mimetype: file.mimetype,
+            ipfsHash: file.ipfsHash,
+            thumbnailHash: file.thumbnailHash || null,
+            description: file.description || null
+          };
+        }),
         isPublic: formData.isPublic,
         network: "IPGuardian Private Network",
         chainId: 40404040,
@@ -534,12 +616,14 @@ const RegisterIPPanel = ({ setPopup, setRefreshTrigger }) => {
         category: "",
         tags: "",
         file: null,
+        selectedFiles: [],
+        uploadedFiles: [],
         isPublic: false,
       });
 
-      // Clear file input
-      const fileInput = document.querySelector('input[type="file"]');
-      if (fileInput) fileInput.value = "";
+      // Clear file inputs
+      const fileInputs = document.querySelectorAll('input[type="file"]');
+      fileInputs.forEach(input => input.value = "");
     } catch (error) {
       console.error("❌ Registration error:", error);
       setPopup({
@@ -751,27 +835,83 @@ const RegisterIPPanel = ({ setPopup, setRefreshTrigger }) => {
           </p>
         </div>
 
-        {/* File Upload */}
+        {/* File Selection for IPFS Upload */}
         <div>
-          <label className="block text-sm font-semibold mb-2" htmlFor="file">
-            Upload File (Optional)
+          <label className="block text-sm font-semibold mb-2" htmlFor="files">
+            Select Files to Upload to IPFS (Optional)
           </label>
           <input
-            id="file"
-            name="file"
+            id="files"
+            name="files"
             type="file"
-            onChange={handleFileChange}
+            multiple
+            onChange={(e) => {
+              const selectedFiles = Array.from(e.target.files);
+              
+              // Validate file sizes (max 50MB each)
+              const oversizedFiles = selectedFiles.filter(file => file.size > 50 * 1024 * 1024);
+              if (oversizedFiles.length > 0) {
+                setPopup({
+                  show: true,
+                  message: `Some files are too large. Maximum size is 50MB per file.`,
+                  success: false,
+                });
+                e.target.value = ''; // Clear the input
+                return;
+              }
+              
+              setFormData(prev => ({ ...prev, selectedFiles }));
+              
+              // Clear validation error
+              if (validationErrors.files) {
+                setValidationErrors(prev => ({ ...prev, files: "" }));
+              }
+            }}
             accept=".pdf,.doc,.docx,.jpg,.png,.gif,.mp3,.mp4,.zip"
             className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7886c7] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-white file:bg-[#7886c7] hover:file:bg-[#2d336b] ${
-              validationErrors.file ? "border-red-500" : "border-[#a9b5df]"
+              validationErrors.files ? "border-red-500" : "border-[#a9b5df]"
             }`}
           />
-          {validationErrors.file && (
-            <p className="mt-1 text-sm text-red-600">{validationErrors.file}</p>
+          {validationErrors.files && (
+            <p className="mt-1 text-sm text-red-600">{validationErrors.files}</p>
           )}
-          <p className="text-xs text-gray-500 mt-1">
-            Supported formats: PDF, DOC, DOCX, JPG, PNG, GIF, MP3, MP4, ZIP (Max
-            10MB)
+
+          {/* Display selected files */}
+          {formData.selectedFiles && formData.selectedFiles.length > 0 && (
+            <div className="mt-4">
+              <h4 className="text-sm font-semibold mb-3 text-[#2d336b]">
+                Selected Files ({formData.selectedFiles.length})
+              </h4>
+              <div className="space-y-2">
+                {formData.selectedFiles.map((file, index) => (
+                  <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                    <div className="flex items-center space-x-2">
+                      <DocumentIcon className="h-5 w-5 text-gray-500" />
+                      <span className="text-sm font-medium text-gray-700">{file.name}</span>
+                      <span className="text-xs text-gray-500">
+                        ({(file.size / (1024 * 1024)).toFixed(2)} MB)
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newFiles = formData.selectedFiles.filter((_, i) => i !== index);
+                        setFormData(prev => ({ ...prev, selectedFiles: newFiles }));
+                      }}
+                      className="text-red-500 hover:text-red-700"
+                      title="Remove file"
+                    >
+                      <TrashIcon className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          <p className="text-xs text-gray-500 mt-2">
+            Files will be uploaded to IPFS when you register your IP. 
+            Supported formats: PDF, DOC, DOCX, JPG, PNG, GIF, MP3, MP4, ZIP (Max 50MB per file)
           </p>
         </div>
 
@@ -855,12 +995,22 @@ const RegisterIPPanel = ({ setPopup, setRefreshTrigger }) => {
             {isSubmitting ? (
               <>
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                <span>Registering IP...</span>
+                <span>
+                  {formData.selectedFiles && formData.selectedFiles.length > 0 
+                    ? "Uploading files and registering IP..." 
+                    : "Registering IP..."
+                  }
+                </span>
               </>
             ) : (
               <>
                 <DocumentPlusIcon className="h-5 w-5" />
-                <span>Register Intellectual Property</span>
+                <span>
+                  Register Intellectual Property
+                  {formData.selectedFiles && formData.selectedFiles.length > 0 && 
+                    ` (with ${formData.selectedFiles.length} file${formData.selectedFiles.length > 1 ? 's' : ''})`
+                  }
+                </span>
               </>
             )}
           </button>
@@ -1583,6 +1733,26 @@ export const UserDashboard = () => {
         setPopup={setPopup}
         setRefreshTrigger={setRefreshTrigger}
       />
+    ),
+    files: (
+      <motion.div
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.3 }}
+        className="w-full max-w-6xl mx-auto"
+      >
+        <FileManager
+          userId={user?._id || userData?._id}
+          userData={userData}
+          onFileSelect={(file) => {
+            setPopup({
+              show: true,
+              message: `Selected file: ${file.name}`,
+              success: true,
+            });
+          }}
+        />
+      </motion.div>
     ),
   };
 

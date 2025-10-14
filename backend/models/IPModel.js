@@ -59,7 +59,7 @@ const IPSchema = new mongoose.Schema(
       default: null,
     },
 
-    // File Information
+    // File Information (Legacy - for backward compatibility)
     fileName: {
       type: String,
       default: null,
@@ -72,6 +72,38 @@ const IPSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+
+    // IPFS Files (New - multiple files support)
+    attachedFiles: [{
+      name: {
+        type: String,
+        required: true,
+      },
+      size: {
+        type: Number,
+        required: true,
+      },
+      mimetype: {
+        type: String,
+        required: true,
+      },
+      ipfsHash: {
+        type: String,
+        required: true,
+      },
+      thumbnailHash: {
+        type: String,
+        default: null,
+      },
+      description: {
+        type: String,
+        default: null,
+      },
+      uploadDate: {
+        type: Date,
+        default: Date.now,
+      }
+    }],
 
     // Status and Settings
     isPublic: {

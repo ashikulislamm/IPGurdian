@@ -11,6 +11,10 @@ import {
   ShieldCheckIcon,
   ExclamationTriangleIcon,
   ClockIcon,
+  FolderOpenIcon,
+  ArrowDownTrayIcon,
+  EyeIcon,
+  DocumentIcon,
 } from "@heroicons/react/24/outline";
 import { ResponsiveNavbar } from "../components/Navbar";
 import { ResponsiveFooter } from "../components/Footer";
@@ -21,6 +25,37 @@ export const IPDetails = () => {
   const [ipData, setIpData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [attachedFiles, setAttachedFiles] = useState([]);
+  const [filesLoading, setFilesLoading] = useState(false);
+
+  // Fetch attached files for the IP
+  const fetchAttachedFiles = async (ipId) => {
+    if (!ipId) return;
+    
+    try {
+      setFilesLoading(true);
+      
+      const response = await fetch(
+        `http://localhost:5000/api/files/public/ip/${ipId}/files`
+      );
+      
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          setAttachedFiles(result.files || []);
+        } else {
+          setAttachedFiles([]);
+        }
+      } else {
+        setAttachedFiles([]);
+      }
+    } catch (error) {
+      console.error("Error fetching attached files:", error);
+      setAttachedFiles([]);
+    } finally {
+      setFilesLoading(false);
+    }
+  };
 
   // Fetch IP details from API
   const fetchIPDetails = async () => {
@@ -38,14 +73,18 @@ export const IPDetails = () => {
         if (marketplaceResult.success && marketplaceResult.data) {
           const foundIP = marketplaceResult.data.find(ip => ip._id === id);
           if (foundIP) {
-            setIpData({
+            const formattedIP = {
               ...foundIP,
               formattedDate: new Date(foundIP.createdAt || foundIP.registrationDate).toLocaleDateString("en-US", {
                 year: "numeric",
                 month: "long",
                 day: "numeric"
               })
-            });
+            };
+            setIpData(formattedIP);
+            
+            // Fetch files for this IP
+            fetchAttachedFiles(foundIP._id);
             return;
           }
         }
@@ -66,6 +105,25 @@ export const IPDetails = () => {
       fetchIPDetails();
     }
   }, [id]);
+
+  // Helper functions for file handling
+  const getFileIcon = (mimetype) => {
+    if (!mimetype) return '📎';
+    if (mimetype.startsWith('image/')) return '🖼️';
+    if (mimetype.startsWith('video/')) return '🎥';
+    if (mimetype.startsWith('audio/')) return '🎵';
+    if (mimetype.includes('pdf')) return '📄';
+    if (mimetype.includes('document') || mimetype.includes('word')) return '📝';
+    if (mimetype.includes('spreadsheet') || mimetype.includes('excel')) return '📊';
+    if (mimetype.includes('zip') || mimetype.includes('rar')) return '📦';
+    return '📎';
+  };
+
+  const handleFileDownload = (file) => {
+    if (file.gatewayUrl) {
+      window.open(file.gatewayUrl, '_blank');
+    }
+  };
 
   const getIPTypeIcon = (ipType) => {
     switch (ipType) {
@@ -127,7 +185,7 @@ export const IPDetails = () => {
             </p>
             <button
               onClick={() => navigate(-1)}
-              className="inline-flex items-center gap-2 bg-[#2d336b] text-white px-6 py-3 rounded-lg hover:bg-[#1e2347] transition-colors duration-200"
+              className="inline-flex items-center gap-2 bg-[#2d336b] text-white px-6 py-3 rounded-lg hover:bg-[#1e2347] transition-colors duration-200 focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-[#7886c7]"
             >
               <ArrowLeftIcon className="h-5 w-5" />
               Go Back
@@ -317,6 +375,108 @@ export const IPDetails = () => {
                 </div>
               </motion.div>
             )}
+
+            {/* Attached Files Section */}
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="lg:col-span-3 bg-white rounded-2xl shadow-lg p-8 border border-gray-100"
+            >
+              <h3 className="text-2xl font-bold text-[#2d336b] mb-6 flex items-center gap-3">
+                <FolderOpenIcon className="h-7 w-7 text-[#7886c7]" />
+                Attached Files
+                {attachedFiles.length > 0 && (
+                  <span className="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
+                    {attachedFiles.length}
+                  </span>
+                )}
+              </h3>
+
+              {filesLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7886c7] mr-3"></div>
+                  <span className="text-gray-600">Loading files...</span>
+                </div>
+              ) : attachedFiles.length > 0 ? (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {attachedFiles.map((file) => (
+                      <div
+                        key={file.id}
+                        className="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-all duration-300 bg-gray-50 hover:bg-white"
+                      >
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-2xl">{getFileIcon(file.mimetype)}</span>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-semibold text-gray-900 truncate text-sm">
+                                {file.name}
+                              </h4>
+                              <p className="text-xs text-gray-500">
+                                {file.size} • {file.category}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {file.description && (
+                          <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                            {file.description}
+                          </p>
+                        )}
+
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => window.open(file.gatewayUrl, '_blank')}
+                            className="flex-1 flex items-center justify-center gap-1 bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
+                          >
+                            <EyeIcon className="h-4 w-4" />
+                            View
+                          </button>
+                          <button
+                            onClick={() => handleFileDownload(file)}
+                            className="flex-1 flex items-center justify-center gap-1 bg-green-50 text-green-600 hover:bg-green-100 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
+                          >
+                            <ArrowDownTrayIcon className="h-4 w-4" />
+                            Download
+                          </button>
+                        </div>
+
+                        <div className="mt-3 text-xs text-gray-500 border-t border-gray-200 pt-2">
+                          <div className="flex items-center justify-between">
+                            <span>Uploaded: {new Date(file.uploadDate).toLocaleDateString()}</span>
+                            <span>{file.downloadCount || 0} downloads</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* File count summary */}
+                  <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="flex items-center justify-between text-sm text-gray-600">
+                      <span>
+                        <strong>{attachedFiles.length}</strong> file{attachedFiles.length !== 1 ? 's' : ''} attached
+                      </span>
+                      <span>
+                        Total downloads: <strong>
+                          {attachedFiles.reduce((sum, file) => sum + (file.downloadCount || 0), 0)}
+                        </strong>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <DocumentIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                  <h4 className="text-lg font-medium text-gray-700 mb-2">No Files Attached</h4>
+                  <p className="text-gray-500">
+                    This intellectual property registration does not have any attached files.
+                  </p>
+                </div>
+              )}
+            </motion.div>
 
             {/* Blockchain Verification */}
             {ipData.transactionHash && (

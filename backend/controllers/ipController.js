@@ -1,5 +1,6 @@
 import IP from "../models/IPModel.js";
 import User from "../models/UserModel.js";
+import File from "../models/FileModel.js";
 import mongoose from "mongoose";
 
 // Register a new IP
@@ -20,6 +21,7 @@ const registerIP = async (req, res) => {
       fileName,
       fileSize,
       fileHash,
+      attachedFiles,
       isPublic,
     } = req.body;
 
@@ -48,11 +50,85 @@ const registerIP = async (req, res) => {
       fileName: fileName || null,
       fileSize: fileSize || null,
       fileHash: fileHash || null,
+      attachedFiles: attachedFiles || [],
       isPublic: isPublic || false,
       status: transactionHash ? "confirmed" : "pending",
     });
 
     await newIP.save();
+
+    // Link existing File documents to this IP registration
+    if (attachedFiles && attachedFiles.length > 0) {
+      console.log('� Linking', attachedFiles.length, 'existing files to IP registration');
+      
+      try {
+        const updatePromises = attachedFiles.map(async (file) => {
+          // Find the existing file by IPFS hash and update it to link to this IP
+          const existingFile = await File.findOne({ ipfsHash: file.ipfsHash });
+          
+          if (existingFile) {
+            // Update the existing file to link it to this IP registration
+            existingFile.ipRegistration = newIP._id;
+            // Update the file's public status to match the IP's public status
+            existingFile.isPublic = isPublic || false;
+            existingFile.accessLevel = (isPublic || false) ? 'public' : 'private';
+            // Also update description if provided
+            if (file.description) {
+              existingFile.mediaMetadata.description = file.description;
+            }
+            await existingFile.save();
+            console.log(`✅ Linked existing file ${file.name} (ID: ${existingFile._id}) to IP registration, isPublic: ${existingFile.isPublic}`);
+            return existingFile;
+          } else {
+            // If file doesn't exist (shouldn't happen), create it
+            console.log(`⚠️ File ${file.name} not found, creating new record`);
+            
+            // Determine category based on mimetype
+            let category = 'unknown';
+            if (file.mimetype.startsWith('image/')) category = 'images';
+            else if (file.mimetype.startsWith('audio/')) category = 'audio';
+            else if (file.mimetype.startsWith('video/')) category = 'video';
+            else if (file.mimetype.includes('pdf') || file.mimetype.includes('document') || file.mimetype.includes('text')) category = 'documents';
+            else if (file.mimetype.includes('zip') || file.mimetype.includes('rar')) category = 'archives';
+            
+            const fileDoc = new File({
+              originalName: file.name,
+              sanitizedName: file.name.replace(/[^a-zA-Z0-9.-]/g, '_'),
+              ipfsHash: file.ipfsHash,
+              gatewayUrl: `http://127.0.0.1:8080/ipfs/${file.ipfsHash}`,
+              publicGatewayUrls: [
+                `https://gateway.pinata.cloud/ipfs/${file.ipfsHash}`,
+                `https://cloudflare-ipfs.com/ipfs/${file.ipfsHash}`
+              ],
+              mimetype: file.mimetype,
+              extension: file.name.split('.').pop()?.toLowerCase() || 'unknown',
+              size: file.size,
+              category,
+              fileHash: file.ipfsHash,
+              thumbnailHash: file.thumbnailHash || null,
+              ipRegistration: newIP._id,
+              uploadedBy: userId,
+              isPublic: isPublic || false,
+              accessLevel: isPublic ? 'public' : 'private',
+              mediaMetadata: {
+                description: file.description || `File attached to IP: ${title}`,
+                createdDate: new Date()
+              },
+              verificationStatus: 'verified'
+            });
+            
+            return fileDoc.save();
+          }
+        });
+        
+        const results = await Promise.all(updatePromises);
+        const linkedCount = results.filter(r => r && r.ipRegistration).length;
+        console.log(`✅ Successfully linked ${linkedCount} file(s) to IP registration`);
+      } catch (fileError) {
+        console.error('❌ Error linking file documents:', fileError);
+        // Don't fail the IP registration if file linking fails
+      }
+    }
 
     res.status(201).json({
       success: true,
