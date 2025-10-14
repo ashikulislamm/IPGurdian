@@ -16,7 +16,7 @@ const navigation = [
   { name: "Product", href: "#" },
   { name: "Features", href: "#" },
   { name: "Marketplace", href: "/marketplace" },
-  { name: "Company", href: "#" },
+  { name: "Company", href: "/company" },
   { name: "Contact", href: "/contact" },
 ];
 

@@ -8,6 +8,7 @@ import { TermsAndConditions } from "./pages/TermsConditions.jsx";
 import { UserDashboard } from "./pages/Profile.jsx";
 import { IPDetails } from "./pages/IPDetails.jsx";
 import Marketplace from "./pages/Marketplace.jsx";
+import Company from "./pages/Company.jsx";
 import { AuthProvider } from "./Context/AuthContext.jsx";
 import { Web3Provider } from "./Context/Web3Context-private.jsx";
 import "./App.css";
@@ -30,6 +31,7 @@ function App() {
               <Route path="/marketplace" element={<Marketplace />} />
               <Route path="/profile" element={<UserDashboard />} />
               <Route path="/ip-details/:id" element={<IPDetails />} />
+              <Route path="/company" element={<Company />} />
             </Routes>
           </Router>
         </Web3Provider>

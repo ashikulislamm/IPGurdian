@@ -6,7 +6,7 @@ import {
   ArrowRightIcon,
   EyeIcon,
   SparklesIcon,
-  DocumentTextIcon
+  DocumentTextIcon,
 } from "@heroicons/react/24/outline";
 
 const LatestPublicIPs = () => {
@@ -18,20 +18,22 @@ const LatestPublicIPs = () => {
     try {
       setLoading(true);
       const response = await fetch(
-        'http://localhost:5000/api/ip/marketplace?limit=4&sortBy=registrationDate&sortOrder=desc'
+        "http://localhost:5000/api/ip/marketplace?limit=4&sortBy=registrationDate&sortOrder=desc"
       );
 
       if (response.ok) {
         const result = await response.json();
         if (result.success && result.data) {
           // Format the data for display
-          const formattedIPs = result.data.map(ip => ({
+          const formattedIPs = result.data.map((ip) => ({
             ...ip,
-            formattedDate: new Date(ip.createdAt || ip.registrationDate).toLocaleDateString("en-US", {
+            formattedDate: new Date(
+              ip.createdAt || ip.registrationDate
+            ).toLocaleDateString("en-US", {
               year: "numeric",
-              month: "short", 
-              day: "numeric"
-            })
+              month: "short",
+              day: "numeric",
+            }),
           }));
           setLatestIPs(formattedIPs);
         }
@@ -83,7 +85,7 @@ const LatestPublicIPs = () => {
   };
 
   return (
-    <section className="py-20 bg-gradient-to-br from-gray-50 via-white to-blue-50">
+    <section className="py-20 bg-gradient-to-br from-gray-50 via-white to-blue-50 rounded-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <motion.div
@@ -99,9 +101,10 @@ const LatestPublicIPs = () => {
               Latest Public IPs
             </h2>
           </div>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Discover the most recently registered intellectual properties made public by our community. 
-            Each IP is verified on the blockchain for authenticity and ownership.
+          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            Discover the most recently registered intellectual properties made
+            public by our community. Each IP is verified on the blockchain for
+            authenticity and ownership.
           </p>
         </motion.div>
 
@@ -178,7 +181,9 @@ const LatestPublicIPs = () => {
                   <div className="text-center space-y-3">
                     <div>
                       <p className="text-xs text-gray-500 mb-1">Category</p>
-                      <p className="font-semibold text-[#2d336b]">{ip.category}</p>
+                      <p className="font-semibold text-[#2d336b]">
+                        {ip.category}
+                      </p>
                     </div>
                     <Link
                       to={`/ip-details/${ip._id}`}
@@ -210,8 +215,9 @@ const LatestPublicIPs = () => {
             <span>Explore Full Marketplace</span>
             <ArrowRightIcon className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
           </Link>
-          <p className="text-gray-600 mt-4 max-w-md mx-auto">
-            Browse all public intellectual properties, use advanced filters, and discover amazing innovations from our community.
+          <p className="text-gray-600 mt-4 max-w-2xl mx-auto">
+            Browse all public intellectual properties, use advanced filters, and
+            discover amazing innovations from our community.
           </p>
         </motion.div>
       </div>
