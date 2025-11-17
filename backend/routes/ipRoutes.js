@@ -43,6 +43,28 @@ router.get("/debug-all", async (req, res) => {
 // All other routes require authentication
 router.use(auth);
 
+// @route   GET /api/ip/nft-ready
+//          Get confirmed IPs eligible for NFT minting (not yet minted)
+router.get('/nft-ready', async (req, res) => {
+  try {
+    const ips = await IP.find({
+      userId: req.user._id,
+      status: 'confirmed',
+      isEligibleForNFT: true,
+      nftTokenId: { $in: [null, undefined] }
+    })
+    .select('title description ipType category registrationDate transactionHash isEligibleForNFT');
+
+    res.json({
+      success: true,
+      ips
+    });
+  } catch (error) {
+    console.error('NFT-ready IP fetch error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch NFT-ready IPs', error: error.message });
+  }
+});
+
 // @route   POST /api/ip/register
 router.post("/register", registerIP);
 

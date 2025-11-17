@@ -110,6 +110,16 @@ const IPSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    // NFT Eligibility & Linkage
+    isEligibleForNFT: {
+      type: Boolean,
+      default: false,
+    },
+    nftTokenId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'NFT',
+      default: null,
+    },
     status: {
       type: String,
       enum: ["pending", "confirmed", "failed"],

@@ -9,6 +9,24 @@ export const ResponsiveFooter = () => {
       <div className="flex justify-center gap-[30px] flex-wrap w-full sm:px-32">
         <div className="flex justify-center sm:justify-between gap-[30px] w-full flex-wrap">
           <Link
+            to="/marketplace"
+            className="text-[0.9rem] text-[#000000] hover:text-[#7886c7] cursor-pointer transition-all duration-200 font-bold"
+          >
+            Registered IPs
+          </Link>
+          <Link
+            to="/nft-marketplace"
+            className="text-[0.9rem] text-[#000000] hover:text-[#7886c7] cursor-pointer transition-all duration-200 font-bold"
+          >
+            NFT Marketplace
+          </Link>
+          <Link
+            to="/nft-minting"
+            className="text-[0.9rem] text-[#000000] hover:text-[#7886c7] cursor-pointer transition-all duration-200 font-bold"
+          >
+            Mint NFT
+          </Link>
+          <Link
             to="/terms-and-conditions"
             className="text-[0.9rem] text-[#000000] hover:text-[#7886c7] cursor-pointer transition-all duration-200 font-bold"
           >
@@ -34,6 +52,12 @@ export const ResponsiveFooter = () => {
             className="text-[0.9rem] text-[#000000] hover:text-[#7886c7] cursor-pointer transition-all duration-200 font-bold"
           >
             Contact Us
+          </Link>
+          <Link
+            to="/dashboard"
+            className="text-[0.9rem] text-[#000000] hover:text-[#7886c7] cursor-pointer transition-all duration-200 font-bold"
+          >
+            Dashboard
           </Link>
         </div>
 

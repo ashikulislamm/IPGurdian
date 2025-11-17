@@ -13,11 +13,10 @@ import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../Context/AuthContext.jsx";
 import { useContext } from "react";
 const navigation = [
-  { name: "Product", href: "#" },
-  { name: "Features", href: "#" },
-  { name: "Marketplace", href: "/marketplace" },
-  { name: "Company", href: "#" },
+  { name: "Registered IPs", href: "/marketplace" },
+  { name: "NFT Marketplace", href: "/nft-marketplace" },
   { name: "Contact", href: "/contact" },
+  { name: "Terms", href: "/terms-and-conditions" },
 ];
 
 export const ResponsiveNavbar = () => {
@@ -124,12 +123,23 @@ export const ResponsiveNavbar = () => {
 
                   <div className="py-1">
                     <Link
-                      to="/profile"
+                      to="/dashboard"
                       onClick={() => setDropdownOpen(false)}
                       className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-[#f9faff] hover:text-[#2d336b] transition-all duration-200 font-sans"
                     >
                       <UserIcon className="h-4 w-4 flex-shrink-0" />
-                      <span className="text-sm font-medium">My Profile</span>
+                      <span className="text-sm font-medium">Dashboard</span>
+                    </Link>
+
+                    <Link
+                      to="/nft-minting"
+                      onClick={() => setDropdownOpen(false)}
+                      className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-[#f9faff] hover:text-[#2d336b] transition-all duration-200 font-sans"
+                    >
+                      <svg className="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                      <span className="text-sm font-medium">Mint NFT</span>
                     </Link>
 
                     <button
@@ -207,14 +217,22 @@ export const ResponsiveNavbar = () => {
                     {/* Menu Items */}
                     <div className="space-y-1">
                       <Link
-                        to="/profile"
+                        to="/dashboard"
                         onClick={() => setMobileMenuOpen(false)}
                         className="flex items-center gap-3 -mx-3 rounded-lg px-3 py-3 text-base font-medium text-gray-900 hover:bg-gray-50 font-sans"
                       >
                         <UserIcon className="h-5 w-5 flex-shrink-0" />
-                        <span className="text-base font-medium">
-                          My Profile
-                        </span>
+                        <span className="text-base font-medium">Dashboard</span>
+                      </Link>
+                      <Link
+                        to="/nft-minting"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-3 -mx-3 rounded-lg px-3 py-3 text-base font-medium text-gray-900 hover:bg-gray-50 font-sans"
+                      >
+                        <svg className="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        </svg>
+                        <span className="text-base font-medium">Mint NFT</span>
                       </Link>
                       <button
                         onClick={() => {

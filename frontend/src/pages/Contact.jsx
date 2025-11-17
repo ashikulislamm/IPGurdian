@@ -32,7 +32,7 @@ export const Contact = () => {
             Contact Us
           </h2>
           <p className="mt-2 text-lg/8 text-gray-600">
-            Aute magna irure deserunt veniam aliqua magna enim voluptate.
+            Contact with us for any query or assistance. We are here to help you.
           </p>
         </div>
         <form

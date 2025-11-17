@@ -3,12 +3,12 @@ import { HiBuildingOffice2, HiMapPin, HiPhone } from "react-icons/hi2";
 
 export const InfoSection = () => {
   return (
-    <section className="bg-[#0F172A] text-white py-12 px-6 mt-20 rounded-lg">
+    <section className="bg-gradient-to-br from-[#2d336b] via-[#7886c7] to-[#a9b5df] text-white py-12 px-6 mt-20 rounded-lg">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-10 text-center">
         {/* Company Info */}
         <div>
           <div className="flex justify-center mb-4">
-            <div className="bg-gray-800 p-3 rounded-md">
+            <div className=" p-3 rounded-md">
               <HiBuildingOffice2 className="text-white text-3xl" />
             </div>
           </div>
@@ -20,7 +20,7 @@ export const InfoSection = () => {
         {/* Address */}
         <div>
           <div className="flex justify-center mb-4">
-            <div className="bg-gray-800 p-3 rounded-md">
+            <div className=" p-3 rounded-md">
               <HiMapPin className="text-white text-3xl" />
             </div>
           </div>
@@ -32,7 +32,7 @@ export const InfoSection = () => {
         {/* Contact */}
         <div>
           <div className="flex justify-center mb-4">
-            <div className="bg-gray-800 p-3 rounded-md">
+            <div className=" p-3 rounded-md">
               <HiPhone className="text-white text-3xl" />
             </div>
           </div>

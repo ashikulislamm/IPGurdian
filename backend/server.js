@@ -6,6 +6,7 @@ import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import ipRoutes from "./routes/ipRoutes.js";
 import fileRoutes from "./routes/fileRoutes.js";
+import nftRoutes from "./routes/nftRoutes.js";
 import ipfsService from "./services/ipfsService.js";
 
 // Load environment variables
@@ -51,6 +52,7 @@ async function testIPFSConnection() {
 app.use("/api/auth", authRoutes);
 app.use("/api/ip", ipRoutes);
 app.use("/api/files", fileRoutes);
+app.use("/api/nft", nftRoutes);
 
 // Health check endpoint
 app.get('/api/health', async (req, res) => {

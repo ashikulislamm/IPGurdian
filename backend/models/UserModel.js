@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -8,7 +8,6 @@ const userSchema = new mongoose.Schema({
   address: { type: String, required: true },
   dateOfBirth: { type: Date, required: true },
   password: { type: String, required: true },
-  bio: { type: String, default: "" }, // Optional bio field
 });
 
-export default mongoose.model("Users", userSchema);
+export default mongoose.model("User", userSchema);

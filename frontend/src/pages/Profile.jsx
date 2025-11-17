@@ -1388,7 +1388,7 @@ export const UserDashboard = () => {
     } else {
       setIsInitialized(true);
     }
-  }, [user, navigate]);
+  }, [user, navigate, fetchUserProfile, logout]);
 
   // Separate effect for fetching profile when needed
   useEffect(() => {

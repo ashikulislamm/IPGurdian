@@ -3,12 +3,11 @@ import LoginPicture from "../assets/Loginillustration.jpg";
 import { ResponsiveNavbar } from "../components/Navbar.jsx";
 import { ResponsiveFooter } from "../components/Footer.jsx";
 import { Link, useNavigate } from "react-router-dom";
-import { AuthContext } from "../Context/AuthContext.jsx";
+import { AuthContext } from "../Context/AuthContext";
 
 export const LoginForm = () => {
   const [form, setForm] = useState({ email: "", password: "" });
   const [popup, setPopup] = useState({ show: false, message: "", success: true });
-
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
 
@@ -18,19 +17,29 @@ export const LoginForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    const result = await login(form.email, form.password);
-    
-    if (result.success) {
-      setPopup({ show: true, message: "Login successful!", success: true });
-      setTimeout(() => {
-        setPopup({ show: false, message: "", success: true });
-        navigate("/profile");
-      }, 2000);
-    } else {
+    try {
+      // Use AuthContext login which handles token and user state
+      const result = await login(form.email, form.password);
+
+      if (result.success) {
+        setPopup({ show: true, message: "Login successful!", success: true });
+
+        setTimeout(() => {
+          setPopup({ show: false, message: "", success: true });
+          navigate("/dashboard");
+        }, 1500);
+      } else {
+        setPopup({
+          show: true,
+          message: result.error || "Login failed",
+          success: false,
+        });
+        setTimeout(() => setPopup({ show: false, message: "", success: true }), 4000);
+      }
+    } catch (err) {
       setPopup({
         show: true,
-        message: result.error,
+        message: err.message || "Login failed",
         success: false,
       });
       setTimeout(() => setPopup({ show: false, message: "", success: true }), 4000);
