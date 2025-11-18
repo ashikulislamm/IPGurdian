@@ -149,7 +149,7 @@ const Marketplace = () => {
           {/* Header */}
           <div className="text-center mb-12">
             <h1 className="text-4xl font-bold text-[#2d336b] mb-4">
-              IP Marketplace
+              Registered IPs Marketplace
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Discover and explore intellectual property registered on our

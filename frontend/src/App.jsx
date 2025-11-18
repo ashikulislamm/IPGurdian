@@ -11,7 +11,7 @@ import { AuthProvider } from "./Context/AuthContext.jsx";
 import { Web3Provider } from "./Context/Web3Context-private.jsx";
 import NFTMarketplace from "./components/NFTMarketplace.jsx";
 import NFTMinting from "./components/NFTMinting.jsx";
-import Marketplace  from "./pages/Marketplace.jsx";
+import Marketplace from "./pages/Marketplace.jsx";
 import "./App.css";
 
 function App() {

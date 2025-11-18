@@ -33,7 +33,7 @@ const IPSchema = new mongoose.Schema(
     // User Information
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Users",
+      ref: "User",
       required: true,
     },
     creator: {

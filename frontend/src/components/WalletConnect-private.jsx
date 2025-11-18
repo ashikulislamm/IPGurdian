@@ -1,5 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useWeb3 } from "../Context/Web3Context-private";
+import { AuthContext } from "../Context/AuthContext";
+import axios from "axios";
 import {
   WalletIcon,
   LinkIcon,
@@ -8,6 +10,8 @@ import {
   CheckCircleIcon,
   ArrowPathIcon,
   Cog6ToothIcon,
+  ShieldCheckIcon,
+  ShieldExclamationIcon,
 } from "@heroicons/react/24/outline";
 
 const WalletConnect = ({
@@ -32,8 +36,148 @@ const WalletConnect = ({
     formatAddress,
   } = useWeb3();
 
+  const { user } = useContext(AuthContext);
+
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isSwitchingNetwork, setIsSwitchingNetwork] = useState(false);
+  const [walletLinkStatus, setWalletLinkStatus] = useState({
+    isLinked: false,
+    walletAddress: null,
+    isChecking: true,
+  });
+  const [linkError, setLinkError] = useState(null);
+
+  // Check wallet link status when component mounts or user/account changes
+  useEffect(() => {
+    if (user) {
+      checkWalletLinkStatus();
+    }
+  }, [user, account]);
+
+  // Auto-link wallet when connected and user is logged in
+  useEffect(() => {
+    if (isConnected && account && user && !walletLinkStatus.isChecking) {
+      handleAutoLinkWallet();
+    }
+  }, [isConnected, account, user, walletLinkStatus.isChecking]);
+
+  // Check if wallet is linked to user account
+  const checkWalletLinkStatus = async () => {
+    if (!user) {
+      setWalletLinkStatus({
+        isLinked: false,
+        walletAddress: null,
+        isChecking: false,
+      });
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        "http://localhost:5000/api/auth/wallet/status",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      setWalletLinkStatus({
+        isLinked: response.data.isLinked,
+        walletAddress: response.data.walletAddress,
+        isChecking: false,
+      });
+    } catch (error) {
+      console.error("Error checking wallet status:", error);
+      setWalletLinkStatus({
+        isLinked: false,
+        walletAddress: null,
+        isChecking: false,
+      });
+    }
+  };
+
+  // Auto-link wallet when connected
+  const handleAutoLinkWallet = async () => {
+    if (!account || !user) return;
+
+    const normalizedAccount = account.toLowerCase();
+
+    // If wallet is already linked and matches current account, do nothing
+    if (
+      walletLinkStatus.isLinked &&
+      walletLinkStatus.walletAddress?.toLowerCase() === normalizedAccount
+    ) {
+      return;
+    }
+
+    // If wallet is linked to a different address, warn user
+    if (
+      walletLinkStatus.isLinked &&
+      walletLinkStatus.walletAddress?.toLowerCase() !== normalizedAccount
+    ) {
+      setLinkError(
+        `Your account is linked to ${formatAddress(
+          walletLinkStatus.walletAddress
+        )}. Please use that wallet or unlink it first.`
+      );
+      return;
+    }
+
+    // Try to link the wallet
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        "http://localhost:5000/api/auth/wallet/link",
+        { walletAddress: account },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      setWalletLinkStatus({
+        isLinked: true,
+        walletAddress: account.toLowerCase(),
+        isChecking: false,
+      });
+      setLinkError(null);
+      console.log("✅ Wallet linked successfully:", account);
+    } catch (error) {
+      const errorMsg =
+        error.response?.data?.msg || "Failed to link wallet";
+      setLinkError(errorMsg);
+      console.error("❌ Failed to link wallet:", errorMsg);
+    }
+  };
+
+  // Manually unlink wallet
+  const handleUnlinkWallet = async () => {
+    if (!user) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      await axios.post(
+        "http://localhost:5000/api/auth/wallet/unlink",
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      setWalletLinkStatus({
+        isLinked: false,
+        walletAddress: null,
+        isChecking: false,
+      });
+      setLinkError(null);
+      console.log("✅ Wallet unlinked successfully");
+
+      // Disconnect MetaMask as well
+      handleDisconnect();
+    } catch (error) {
+      console.error("Error unlinking wallet:", error);
+      alert("Failed to unlink wallet");
+    }
+  };
 
   // Handle balance refresh
   const handleRefreshBalance = async () => {
@@ -68,12 +212,52 @@ const WalletConnect = ({
     if (!result.success && result.error) {
       console.error("Disconnection failed:", result.error);
     }
+    setLinkError(null);
   };
 
   // Check if current network is supported
   const isCurrentNetworkSupported = chainId
     ? isSupportedNetwork(chainId)
     : true;
+
+  // Wallet link status indicator
+  const WalletLinkIndicator = () => {
+    if (!user || !isConnected) return null;
+
+    if (walletLinkStatus.isChecking) {
+      return (
+        <div className="flex items-center space-x-2 text-sm text-gray-600">
+          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-gray-600"></div>
+          <span>Checking wallet link...</span>
+        </div>
+      );
+    }
+
+    if (walletLinkStatus.isLinked) {
+      return (
+        <div className="flex items-center space-x-2 text-sm text-green-600 bg-green-50 px-3 py-2 rounded-lg">
+          <ShieldCheckIcon className="h-4 w-4" />
+          <span className="font-medium">Wallet Linked</span>
+        </div>
+      );
+    }
+
+    if (linkError) {
+      return (
+        <div className="flex items-center space-x-2 text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
+          <ShieldExclamationIcon className="h-4 w-4" />
+          <span className="font-medium">Link Failed</span>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex items-center space-x-2 text-sm text-orange-600 bg-orange-50 px-3 py-2 rounded-lg">
+        <ShieldExclamationIcon className="h-4 w-4" />
+        <span className="font-medium">Not Linked</span>
+      </div>
+    );
+  };
 
   // Compact view for smaller spaces
   if (compact) {
@@ -131,14 +315,40 @@ const WalletConnect = ({
             <CheckCircleIcon className="h-5 w-5 text-green-500" />
             <span className="font-medium text-gray-900">Wallet Connected</span>
           </div>
-          <button
-            onClick={handleDisconnect}
-            className="text-red-600 hover:text-red-800 transition-colors p-1 rounded-lg hover:bg-red-50"
-            title="Disconnect Wallet"
-          >
-            <XMarkIcon className="h-5 w-5" />
-          </button>
+          <div className="flex items-center space-x-2">
+            {user && walletLinkStatus.isLinked && (
+              <button
+                onClick={handleUnlinkWallet}
+                className="text-orange-600 hover:text-orange-800 transition-colors p-1 rounded-lg hover:bg-orange-50 text-xs"
+                title="Unlink Wallet"
+              >
+                Unlink
+              </button>
+            )}
+            <button
+              onClick={handleDisconnect}
+              className="text-red-600 hover:text-red-800 transition-colors p-1 rounded-lg hover:bg-red-50"
+              title="Disconnect Wallet"
+            >
+              <XMarkIcon className="h-5 w-5" />
+            </button>
+          </div>
         </div>
+
+        {/* Wallet Link Status */}
+        {user && <WalletLinkIndicator />}
+
+        {/* Link Error Display */}
+        {linkError && (
+          <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex items-start space-x-2">
+              <ExclamationTriangleIcon className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm text-red-800">{linkError}</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Account Info */}
         <div className="space-y-3">

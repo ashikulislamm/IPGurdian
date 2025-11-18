@@ -56,6 +56,8 @@ export const loginUser = async (req, res) => {
         address: user.address,
         dateOfBirth: user.dateOfBirth,
         bio: user.bio || "",
+        walletAddress: user.walletAddress || null,
+        walletLinkedAt: user.walletLinkedAt || null,
       },
     });
   } catch (err) {
@@ -82,6 +84,8 @@ export const getUserProfile = async (req, res) => {
         address: user.address,
         dateOfBirth: user.dateOfBirth,
         bio: user.bio || "",
+        walletAddress: user.walletAddress || null,
+        walletLinkedAt: user.walletLinkedAt || null,
       },
     });
   } catch (err) {
@@ -132,10 +136,127 @@ export const updateUserProfile = async (req, res) => {
         address: updatedUser.address,
         dateOfBirth: updatedUser.dateOfBirth,
         bio: updatedUser.bio || "",
+        walletAddress: updatedUser.walletAddress || null,
+        walletLinkedAt: updatedUser.walletLinkedAt || null,
       },
     });
   } catch (err) {
     console.error("Update Profile Error:", err.message);
+    res.status(500).json({ msg: "Server error" });
+  }
+};
+
+// Link MetaMask wallet to user account
+export const linkWallet = async (req, res) => {
+  try {
+    const { walletAddress } = req.body;
+
+    if (!walletAddress) {
+      return res.status(400).json({ msg: "Wallet address is required" });
+    }
+
+    // Validate Ethereum address format
+    if (!/^0x[a-fA-F0-9]{40}$/.test(walletAddress)) {
+      return res.status(400).json({ msg: "Invalid Ethereum address format" });
+    }
+
+    const normalizedAddress = walletAddress.toLowerCase();
+
+    // Check if wallet is already linked to another user
+    const existingWallet = await User.findOne({ 
+      walletAddress: normalizedAddress,
+      _id: { $ne: req.user.id }
+    });
+
+    if (existingWallet) {
+      return res.status(400).json({ 
+        msg: "This wallet is already linked to another account",
+        error: "WALLET_ALREADY_LINKED"
+      });
+    }
+
+    // Check if current user already has a wallet linked
+    const currentUser = await User.findById(req.user.id);
+    if (currentUser.walletAddress && currentUser.walletAddress !== normalizedAddress) {
+      return res.status(400).json({ 
+        msg: "You already have a different wallet linked. Please unlink it first.",
+        error: "WALLET_ALREADY_EXISTS"
+      });
+    }
+
+    // Link the wallet
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user.id,
+      {
+        walletAddress: normalizedAddress,
+        walletLinkedAt: new Date(),
+      },
+      { new: true }
+    ).select("-password");
+
+    res.status(200).json({
+      msg: "Wallet linked successfully",
+      user: {
+        id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        walletAddress: updatedUser.walletAddress,
+        walletLinkedAt: updatedUser.walletLinkedAt,
+      },
+    });
+  } catch (err) {
+    console.error("Link Wallet Error:", err.message);
+    res.status(500).json({ msg: "Server error" });
+  }
+};
+
+// Unlink MetaMask wallet from user account
+export const unlinkWallet = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    if (!user.walletAddress) {
+      return res.status(400).json({ msg: "No wallet linked to this account" });
+    }
+
+    // Unlink the wallet
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user.id,
+      {
+        walletAddress: null,
+        walletLinkedAt: null,
+      },
+      { new: true }
+    ).select("-password");
+
+    res.status(200).json({
+      msg: "Wallet unlinked successfully",
+      user: {
+        id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        walletAddress: null,
+        walletLinkedAt: null,
+      },
+    });
+  } catch (err) {
+    console.error("Unlink Wallet Error:", err.message);
+    res.status(500).json({ msg: "Server error" });
+  }
+};
+
+// Get wallet status
+export const getWalletStatus = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("walletAddress walletLinkedAt");
+
+    res.status(200).json({
+      isLinked: !!user.walletAddress,
+      walletAddress: user.walletAddress || null,
+      linkedAt: user.walletLinkedAt || null,
+    });
+  } catch (err) {
+    console.error("Get Wallet Status Error:", err.message);
     res.status(500).json({ msg: "Server error" });
   }
 };

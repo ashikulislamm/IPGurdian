@@ -541,7 +541,7 @@ const getPublicIPs = async (req, res) => {
 
     // First, let's see what all IPs exist
     const allIPs = await IP.find({}).select("title isPublic status").limit(5);
-    console.log("🗂️ Sample IPs in database:", allIPs);
+    //console.log("🗂️ Sample IPs in database:", allIPs);
 
     const totalAll = await IP.countDocuments({});
     const totalPublic = await IP.countDocuments({ isPublic: true });
@@ -551,7 +551,6 @@ const getPublicIPs = async (req, res) => {
 
     // Get total count for pagination
     const total = await IP.countDocuments(query);
-
     // Fetch public IPs with pagination and sorting (populate user for marketplace)
     const publicIPs = await IP.find(query)
       .populate('userId', 'name email')
