@@ -173,57 +173,53 @@ const NFTMinting = () => {
         </div>
       ) : (
         <div className="ip-grid">
-          {eligibleIPs.map((ip) => (
-            <div key={ip._id} className="ip-card">
-              <div className="ip-card-header">
-                <span className="ip-type-badge">{ip.ipType}</span>
-                <span className="ip-status-badge confirmed">Confirmed</span>
-              </div>
-              
-              <div className="ip-card-body">
-                <h3>{ip.title}</h3>
-                <p className="ip-description">{ip.description}</p>
-                
-                <div className="ip-details">
-                  <div className="detail-item">
-                    <span className="label">Category:</span>
-                    <span className="value">{ip.category}</span>
-                  </div>
-                  <div className="detail-item">
-                    <span className="label">Registration Date:</span>
-                    <span className="value">
-                      {new Date(ip.registrationDate).toLocaleDateString()}
-                    </span>
-                  </div>
-                  {ip.transactionHash && (
+          {eligibleIPs.map((ip) => {
+            const statusLabel = ip.status ? ip.status.charAt(0).toUpperCase() + ip.status.slice(1) : 'Pending';
+            return (
+              <div key={ip._id} className="ip-card">
+                <div className="ip-card-header">
+                  <span className="ip-type-badge">{ip.ipType}</span>
+                  <span className={`ip-status-badge status-${ip.status || 'pending'}`}>{statusLabel}</span>
+                </div>
+                <div className="ip-card-body">
+                  <h3>{ip.title}</h3>
+                  <p className="ip-description">{ip.description}</p>
+                  <div className="ip-details">
                     <div className="detail-item">
-                      <span className="label">TX Hash:</span>
-                      <span className="value hash">
-                        {ip.transactionHash.substring(0, 10)}...
-                      </span>
+                      <span className="label">Category:</span>
+                      <span className="value">{ip.category}</span>
                     </div>
-                  )}
+                    <div className="detail-item">
+                      <span className="label">Registration Date:</span>
+                      <span className="value">{new Date(ip.registrationDate).toLocaleDateString()}</span>
+                    </div>
+                    {ip.transactionHash && (
+                      <div className="detail-item">
+                        <span className="label">TX Hash:</span>
+                        <span className="value hash">{ip.transactionHash.substring(0, 10)}...</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="ip-card-footer">
+                  <button
+                    className="mint-button"
+                    onClick={() => prepareAndMint(ip._id)}
+                    disabled={minting}
+                  >
+                    {minting ? (
+                      <>
+                        <span className="spinner-small"></span>
+                        Minting...
+                      </>
+                    ) : (
+                      'Mint as NFT'
+                    )}
+                  </button>
                 </div>
               </div>
-
-              <div className="ip-card-footer">
-                <button
-                  className="mint-button"
-                  onClick={() => prepareAndMint(ip._id)}
-                  disabled={minting}
-                >
-                  {minting ? (
-                    <>
-                      <span className="spinner-small"></span>
-                      Minting...
-                    </>
-                  ) : (
-                    'Mint as NFT'
-                  )}
-                </button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -237,11 +233,16 @@ const NFTMinting = () => {
           <div className="public-ip-grid">
             {publicIPs.slice(0, 6).map(ip => (
               <div key={ip._id} className="public-ip-card">
-                <h4>{ip.title}</h4>
-                <p className="public-ip-desc">{ip.description}</p>
-                <div className="public-meta">
-                  <span>{ip.ipType}</span>
-                  <span>{new Date(ip.registrationDate).toLocaleDateString()}</span>
+                <div className="public-ip-card-inner">
+                  <h4>{ip.title}</h4>
+                  <p className="public-ip-desc">{ip.description}</p>
+                  <div className="public-meta">
+                    <span className="chip chip-type">{ip.ipType}</span>
+                    <span className="chip chip-date">{new Date(ip.registrationDate).toLocaleDateString()}</span>
+                  </div>
+                  <div className="public-ip-footer">
+                    <button className="mint-button mini" onClick={() => prepareAndMint(ip._id)} disabled={minting}>Mint</button>
+                  </div>
                 </div>
               </div>
             ))}

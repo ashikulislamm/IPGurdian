@@ -5,6 +5,7 @@ import { LoginForm } from "../src/pages/Login.jsx";
 import { Contact } from "../src/pages/Contact.jsx";
 import { RegisterForm } from "../src/pages/Register.jsx";
 import { TermsAndConditions } from "./pages/TermsConditions.jsx";
+import { PrivacyPolicy } from "./pages/PrivacyPolicy.jsx";
 import { UserDashboard } from "./pages/Profile.jsx";
 import { IPDetails } from "./pages/IPDetails.jsx";
 import { AuthProvider } from "./Context/AuthContext.jsx";
@@ -12,6 +13,7 @@ import { Web3Provider } from "./Context/Web3Context-private.jsx";
 import NFTMarketplace from "./components/NFTMarketplace.jsx";
 import NFTMinting from "./components/NFTMinting.jsx";
 import Marketplace from "./pages/Marketplace.jsx";
+import Company from "./pages/Company.jsx";
 import "./App.css";
 
 function App() {
@@ -29,11 +31,13 @@ function App() {
                 path="/terms-and-conditions"
                 element={<TermsAndConditions />}
               />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/dashboard" element={<UserDashboard />} />
               <Route path="/ip-details/:id" element={<IPDetails />} />
               <Route path="/nft-marketplace" element={<NFTMarketplace />} />
               <Route path="/nft-minting" element={<NFTMinting />} />
               <Route path="/marketplace" element={<Marketplace />} />
+              <Route path="/company" element={<Company />} />
             </Routes>
           </Router>
         </Web3Provider>

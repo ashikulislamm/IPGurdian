@@ -59,49 +59,64 @@ const registerIP = async (req, res) => {
 
     // Link existing File documents to this IP registration
     if (attachedFiles && attachedFiles.length > 0) {
-      console.log('� Linking', attachedFiles.length, 'existing files to IP registration');
-      
+      console.log(
+        "� Linking",
+        attachedFiles.length,
+        "existing files to IP registration"
+      );
+
       try {
         const updatePromises = attachedFiles.map(async (file) => {
           // Find the existing file by IPFS hash and update it to link to this IP
           const existingFile = await File.findOne({ ipfsHash: file.ipfsHash });
-          
+
           if (existingFile) {
             // Update the existing file to link it to this IP registration
             existingFile.ipRegistration = newIP._id;
             // Update the file's public status to match the IP's public status
             existingFile.isPublic = isPublic || false;
-            existingFile.accessLevel = (isPublic || false) ? 'public' : 'private';
+            existingFile.accessLevel = isPublic || false ? "public" : "private";
             // Also update description if provided
             if (file.description) {
               existingFile.mediaMetadata.description = file.description;
             }
             await existingFile.save();
-            console.log(`✅ Linked existing file ${file.name} (ID: ${existingFile._id}) to IP registration, isPublic: ${existingFile.isPublic}`);
+            console.log(
+              `✅ Linked existing file ${file.name} (ID: ${existingFile._id}) to IP registration, isPublic: ${existingFile.isPublic}`
+            );
             return existingFile;
           } else {
             // If file doesn't exist (shouldn't happen), create it
             console.log(`⚠️ File ${file.name} not found, creating new record`);
-            
+
             // Determine category based on mimetype
-            let category = 'unknown';
-            if (file.mimetype.startsWith('image/')) category = 'images';
-            else if (file.mimetype.startsWith('audio/')) category = 'audio';
-            else if (file.mimetype.startsWith('video/')) category = 'video';
-            else if (file.mimetype.includes('pdf') || file.mimetype.includes('document') || file.mimetype.includes('text')) category = 'documents';
-            else if (file.mimetype.includes('zip') || file.mimetype.includes('rar')) category = 'archives';
-            
+            let category = "unknown";
+            if (file.mimetype.startsWith("image/")) category = "images";
+            else if (file.mimetype.startsWith("audio/")) category = "audio";
+            else if (file.mimetype.startsWith("video/")) category = "video";
+            else if (
+              file.mimetype.includes("pdf") ||
+              file.mimetype.includes("document") ||
+              file.mimetype.includes("text")
+            )
+              category = "documents";
+            else if (
+              file.mimetype.includes("zip") ||
+              file.mimetype.includes("rar")
+            )
+              category = "archives";
+
             const fileDoc = new File({
               originalName: file.name,
-              sanitizedName: file.name.replace(/[^a-zA-Z0-9.-]/g, '_'),
+              sanitizedName: file.name.replace(/[^a-zA-Z0-9.-]/g, "_"),
               ipfsHash: file.ipfsHash,
               gatewayUrl: `http://127.0.0.1:8080/ipfs/${file.ipfsHash}`,
               publicGatewayUrls: [
                 `https://gateway.pinata.cloud/ipfs/${file.ipfsHash}`,
-                `https://cloudflare-ipfs.com/ipfs/${file.ipfsHash}`
+                `https://cloudflare-ipfs.com/ipfs/${file.ipfsHash}`,
               ],
               mimetype: file.mimetype,
-              extension: file.name.split('.').pop()?.toLowerCase() || 'unknown',
+              extension: file.name.split(".").pop()?.toLowerCase() || "unknown",
               size: file.size,
               category,
               fileHash: file.ipfsHash,
@@ -109,23 +124,26 @@ const registerIP = async (req, res) => {
               ipRegistration: newIP._id,
               uploadedBy: userId,
               isPublic: isPublic || false,
-              accessLevel: isPublic ? 'public' : 'private',
+              accessLevel: isPublic ? "public" : "private",
               mediaMetadata: {
-                description: file.description || `File attached to IP: ${title}`,
-                createdDate: new Date()
+                description:
+                  file.description || `File attached to IP: ${title}`,
+                createdDate: new Date(),
               },
-              verificationStatus: 'verified'
+              verificationStatus: "verified",
             });
-            
+
             return fileDoc.save();
           }
         });
-        
+
         const results = await Promise.all(updatePromises);
-        const linkedCount = results.filter(r => r && r.ipRegistration).length;
-        console.log(`✅ Successfully linked ${linkedCount} file(s) to IP registration`);
+        const linkedCount = results.filter((r) => r && r.ipRegistration).length;
+        console.log(
+          `✅ Successfully linked ${linkedCount} file(s) to IP registration`
+        );
       } catch (fileError) {
-        console.error('❌ Error linking file documents:', fileError);
+        console.error("❌ Error linking file documents:", fileError);
         // Don't fail the IP registration if file linking fails
       }
     }
@@ -553,7 +571,7 @@ const getPublicIPs = async (req, res) => {
     const total = await IP.countDocuments(query);
     // Fetch public IPs with pagination and sorting (populate user for marketplace)
     const publicIPs = await IP.find(query)
-      .populate('userId', 'name email')
+      .populate("userId", "name email phone country address bio walletAddress")
       .sort(sort)
       .skip(skip)
       .limit(limitNum)
@@ -563,15 +581,7 @@ const getPublicIPs = async (req, res) => {
       `✅ Found ${publicIPs.length} public IPs out of ${total} total matching query`
     );
 
-    if (publicIPs.length > 0) {
-      console.log("🎯 First public IP:", {
-        title: publicIPs[0].title,
-        isPublic: publicIPs[0].isPublic,
-        status: publicIPs[0].status,
-        creator: publicIPs[0].creator,
-      });
-      console.log("🎯 Sample IP structure:", Object.keys(publicIPs[0]));
-    }
+    
 
     res.json({
       success: true,

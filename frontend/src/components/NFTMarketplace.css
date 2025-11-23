@@ -4,6 +4,92 @@
   padding: 40px 20px;
   min-height: 100vh;
 }
+.marketplace-header h1 {
+  font-size: 3rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--Accent-color) 0%, var(--Secondary-color) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 10px;
+}
+.filter-group select:hover {
+  border-color: var(--Accent-color);
+}
+.filter-group select:focus {
+  outline: none;
+  border-color: var(--Accent-color);
+  box-shadow: 0 0 0 3px rgba(169,181,223,.3);
+}
+.spinner {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 20px;
+  border: 5px solid #e5e7eb;
+  border-top-color: var(--Accent-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+.nft-card {
+  background: #fff;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0,0,0,.05);
+  transition: .3s;
+  border: 2px solid transparent;
+  display: flex;
+  flex-direction: column;
+  min-height: 470px;
+}
+.nft-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(0,0,0,.12);
+  border-color: var(--Accent-color);
+}
+.nft-card-content {
+  padding: 25px;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+.nft-type-badge {
+  background: linear-gradient(135deg,var(--Accent-color) 0%, var(--Secondary-color) 100%);
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: .75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.detail-row .value.price {
+  color: var(--Accent-color);
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+.detail-row .value.creator-name {
+  color: var(--Secondary-color);
+}
+.btn-primary {
+  background: linear-gradient(135deg,var(--Accent-color) 0%, var(--Secondary-color) 100%);
+  color: #fff;
+}
+.btn-secondary {
+  background: #fff;
+  color: var(--Secondary-color);
+  border: 2px solid var(--Accent-color);
+}
+.btn-secondary:hover {
+  background: var(--Accent-color);
+  color: #fff;
+  border-color: var(--Secondary-color);
+}
+.nft-marketplace-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  min-height: 100vh;
+}
 
 .marketplace-header {
   text-align: center;
@@ -299,7 +385,17 @@
 
 .btn-primary:hover {
   transform: scale(1.02);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+.nft-card-footer {
+  padding: 20px 25px;
+  background: #f8fafc;
+  border-top: 1px solid #e5e7eb;
+  margin-top: auto;
+}
+.nft-actions {
+  display: flex;
+  gap: 12px;
 }
 
 .btn-secondary {

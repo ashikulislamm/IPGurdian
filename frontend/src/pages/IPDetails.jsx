@@ -15,9 +15,15 @@ import {
   ArrowDownTrayIcon,
   EyeIcon,
   DocumentIcon,
+  PhoneIcon,
+  MapPinIcon,
+  EnvelopeIcon,
+  EyeSlashIcon
 } from "@heroicons/react/24/outline";
 import { ResponsiveNavbar } from "../components/Navbar";
 import { ResponsiveFooter } from "../components/Footer";
+
+//
 
 export const IPDetails = () => {
   const { id } = useParams();
@@ -204,7 +210,7 @@ export const IPDetails = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.6 }}
-        className="min-h-screen bg-gray-50 mt-16 rounded-b-3xl"
+        className="min-h-screen bg-gray-50 mt-18 mb-10 rounded-b-3xl"
       >
         {/* Hero Section */}
         <div className="bg-gradient-to-r from-[#2d336b] to-[#7886c7] text-white py-16 px-6 rounded-t-3xl shadow-lg">
@@ -298,54 +304,47 @@ export const IPDetails = () => {
                 <ShieldCheckIcon className="h-7 w-7 text-[#7886c7]" />
                 IP Information
               </h3>
-              
-              <div className="space-y-6">
-                <div className="grid grid-cols-2 gap-6">
-                  <div>
-                    <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide block mb-2">
-                      Type
-                    </label>
-                    <div className="flex items-center gap-2 text-gray-800">
-                      <span className="text-xl">{getIPTypeIcon(ipData.ipType)}</span>
-                      <span className="font-semibold capitalize text-lg">{ipData.ipType}</span>
+              <div className="space-y-5">
+                {/* Row helper style: icon + label + value all left aligned */}
+                <div className="flex items-center gap-3">
+                  <span className="text-xl">{getIPTypeIcon(ipData.ipType)}</span>
+                  <span className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Type:</span>
+                  <span className="text-gray-800 font-medium capitalize">{ipData.ipType}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <TagIcon className="h-5 w-5 text-[#7886c7]" />
+                  <span className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Category:</span>
+                  <span className="text-gray-800 font-medium">{ipData.category}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <CalendarIcon className="h-5 w-5 text-gray-500" />
+                  <span className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Registration Date:</span>
+                  <span className="text-gray-800 font-medium">{ipData.formattedDate}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <EyeIcon className="h-5 w-5 text-gray-500" />
+                  <span className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Visibility:</span>
+                  <span className="text-gray-800 font-medium">{ipData.isPublic ? "Public" : "Private"}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <ClockIcon className="h-5 w-5 text-gray-500" />
+                  <span className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Status:</span>
+                  <span className={`inline-flex px-3 py-1 rounded-full border text-xs font-medium ${getStatusColor(ipData.status)}`}>{ipData.status}</span>
+                </div>
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-3 mb-2">
+                    <LinkIcon className="h-5 w-5 text-gray-500" />
+                    <span className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Wallet Address:</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                      <p className="text-gray-800 font-mono text-xs break-all">{ipData.creator}</p>
                     </div>
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide block mb-2">
-                      Category
-                    </label>
-                    <p className="text-gray-800 font-semibold text-lg">{ipData.category}</p>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide block mb-2">
-                    Registration Date
-                  </label>
-                  <div className="flex items-center gap-2 text-gray-800">
-                    <CalendarIcon className="h-5 w-5 text-gray-500" />
-                    <span className="font-semibold">{ipData.formattedDate}</span>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide block mb-2">
-                    Status
-                  </label>
-                  <span
-                    className={`inline-block px-4 py-2 rounded-full border font-medium ${getStatusColor(ipData.status)}`}
-                  >
-                    {ipData.status}
-                  </span>
-                </div>
-
-                <div>
-                  <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide block mb-2">
-                    Wallet Address
-                  </label>
-                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                    <p className="text-gray-800 font-mono text-sm break-all">{ipData.creator}</p>
+                    <button
+                      type="button"
+                      onClick={() => navigator.clipboard && ipData.creator && navigator.clipboard.writeText(ipData.creator)}
+                      className="px-4 py-2 rounded-lg bg-[#2d336b] text-white text-xs font-medium hover:bg-[#1e2347] transition-colors"
+                    >Copy</button>
                   </div>
                 </div>
               </div>
@@ -363,15 +362,40 @@ export const IPDetails = () => {
                   <UserIcon className="h-7 w-7 text-[#7886c7]" />
                   Owner Details
                 </h3>
-                
-                <div className="space-y-4">
-                  <div className="text-center pb-4 border-b border-gray-100">
-                    <div className="w-16 h-16 bg-gradient-to-r from-[#2d336b] to-[#7886c7] rounded-full flex items-center justify-center mx-auto mb-3">
-                      <UserIcon className="h-8 w-8 text-white" />
-                    </div>
-                    <h4 className="text-xl font-bold text-[#2d336b]">{ipData.userId.name}</h4>
-                    <p className="text-gray-600">{ipData.userId.email}</p>
+                <div className="space-y-4 text-left">
+                  {/* Name */}
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Name</p>
+                    <p className="text-gray-800 font-medium">{ipData.userId.name}</p>
                   </div>
+                  {/* Email */}
+                  {ipData.userId.email && (
+                    <div>
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Email</p>
+                      <p className="text-gray-800 font-medium break-all">{ipData.userId.email}</p>
+                    </div>
+                  )}
+                  {/* Phone */}
+                  {ipData.userId.phone && (
+                    <div>
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Phone Number</p>
+                      <p className="text-gray-800 font-medium">{ipData.userId.phone}</p>
+                    </div>
+                  )}
+                  {/* Address */}
+                  {ipData.userId.address && (
+                    <div>
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Address</p>
+                      <p className="text-gray-800 font-medium break-words">{ipData.userId.address}</p>
+                    </div>
+                  )}
+                  {/* Country */}
+                  {ipData.userId.country && (
+                    <div>
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Country</p>
+                      <p className="text-gray-800 font-medium">{ipData.userId.country}</p>
+                    </div>
+                  )}
                 </div>
               </motion.div>
             )}

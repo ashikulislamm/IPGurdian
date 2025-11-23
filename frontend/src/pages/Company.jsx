@@ -158,7 +158,7 @@ const Company = () => {
       <ResponsiveNavbar />
 
       {/* Hero Section */}
-      <section className="relative min-h-screen bg-gradient-to-br from-[#2d336b] via-[#7886c7] to-[#a9b5df] flex items-center mt-16 rounded-lg">
+      <section className="relative bg-gradient-to-br from-[#2d336b] via-[#7886c7] to-[#a9b5df] flex items-center mt-18 rounded-lg">
         <div className="absolute inset-0 bg-black/10"></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32">
           <motion.div

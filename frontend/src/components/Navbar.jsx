@@ -15,6 +15,7 @@ import { useContext } from "react";
 const navigation = [
   { name: "Registered IPs", href: "/marketplace" },
   { name: "NFT Marketplace", href: "/nft-marketplace" },
+  { name: "Company", href: "/company" },
   { name: "Contact", href: "/contact" },
   { name: "Terms", href: "/terms-and-conditions" },
 ];

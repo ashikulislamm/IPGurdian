@@ -136,9 +136,9 @@ const LatestPublicIPs = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 viewport={{ once: true }}
-                className="bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 group"
+                className="bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 group flex flex-col h-full"
               >
-                <div className="p-6">
+                <div className="p-6 flex-1">
                   {/* Header */}
                   <div className="text-center mb-4">
                     <div className="flex items-center justify-center gap-2 mb-3">

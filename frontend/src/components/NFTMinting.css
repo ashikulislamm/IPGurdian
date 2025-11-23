@@ -134,6 +134,9 @@
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
   transition: all 0.3s ease;
   border: 2px solid transparent;
+  display: flex;
+  flex-direction: column;
+  min-height: 430px;
 }
 
 .ip-card:hover {
@@ -144,21 +147,21 @@
 
 .ip-card-header {
   padding: 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--Accent-color) 0%, var(--Secondary-color) 100%);
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
 .ip-type-badge {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
+  background: rgba(255,255,255,0.25);
+  color: #fff;
   padding: 6px 14px;
   border-radius: 20px;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
-  backdrop-filter: blur(10px);
+  letter-spacing: .5px;
 }
 
 .ip-status-badge {
@@ -168,14 +171,16 @@
   font-weight: 600;
 }
 
-.ip-status-badge.confirmed {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  backdrop-filter: blur(10px);
-}
+.ip-status-badge {background: rgba(255,255,255,0.25);color:#fff;}
+.ip-status-badge.status-confirmed {background: rgba(46,164,79,0.9);}
+.ip-status-badge.status-pending {background: rgba(255,193,7,0.9);}
+.ip-status-badge.status-failed {background: rgba(220,53,69,0.9);}
 
 .ip-card-body {
   padding: 25px;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .ip-card-body h3 {
@@ -235,13 +240,14 @@
   padding: 20px 25px;
   background: #f8fafc;
   border-top: 1px solid #e5e7eb;
+  margin-top: auto;
 }
 
 /* Mint Button */
 .mint-button {
   width: 100%;
   padding: 14px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--Accent-color) 0%, var(--Secondary-color) 100%);
   color: white;
   border: none;
   border-radius: 12px;
@@ -256,9 +262,18 @@
 }
 
 .mint-button:hover:not(:disabled) {
-  transform: scale(1.02);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.12);
 }
+.public-ip-grid {display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:24px;margin-top:30px;}
+.public-ip-card {background:#fff;border-radius:18px;box-shadow:0 4px 6px rgba(0,0,0,.05);display:flex;flex-direction:column;min-height:300px;overflow:hidden;border:2px solid transparent;transition:.3s;}
+.public-ip-card-inner {padding:22px;display:flex;flex-direction:column;flex:1 1 auto;}
+.public-ip-card:hover {transform:translateY(-5px);border-color:var(--Accent-color);}
+.public-ip-desc {color:#64748b;line-height:1.5;font-size:.9rem;flex:0 0 auto;margin:0 0 12px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+.public-meta {margin-top:auto;display:flex;gap:8px;flex-wrap:wrap;}
+.chip {background:#f1f5f9;color:var(--Secondary-color);padding:4px 10px;border-radius:20px;font-size:.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
+.public-ip-footer {margin-top:16px;}
+.mint-button.mini {padding:10px;font-size:.85rem;border-radius:10px;}
 
 .mint-button:disabled {
   opacity: 0.6;

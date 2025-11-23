@@ -47,13 +47,16 @@ router.use(auth);
 //          Get confirmed IPs eligible for NFT minting (not yet minted)
 router.get('/nft-ready', async (req, res) => {
   try {
+    // Updated eligibility logic:
+    // Show all user-owned, public IPs that are not yet minted and not failed.
+    // Include both 'confirmed' and 'pending' so new registrations appear immediately.
     const ips = await IP.find({
       userId: req.user._id,
-      status: 'confirmed',
-      isEligibleForNFT: true,
+      isPublic: true,
+      status: { $in: ['confirmed', 'pending'] },
       nftTokenId: { $in: [null, undefined] }
     })
-    .select('title description ipType category registrationDate transactionHash isEligibleForNFT');
+    .select('title description ipType category registrationDate transactionHash status isPublic');
 
     res.json({
       success: true,

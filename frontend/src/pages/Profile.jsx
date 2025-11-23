@@ -52,11 +52,6 @@ const menuItems = [
     key: "ips",
   },
   {
-    name: "File Manager",
-    icon: <CloudArrowUpIcon className="h-5 w-5" />,
-    key: "files",
-  },
-  {
     name: "IP Trading History",
     icon: <ArrowPathIcon className="h-5 w-5" />,
     key: "history",
@@ -116,10 +111,17 @@ const SettingsPanel = ({ userData, setUserData, setPopup }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    console.log("📝 Submitting profile update:", formData);
     const result = await updateUserProfile(formData);
+    console.log("✅ Update result:", result);
 
     if (result.success) {
+      // Update local userData state with the returned data
       setUserData(result.data);
+      
+      // Also update localStorage to persist the changes
+      localStorage.setItem("user", JSON.stringify(result.data));
+      
       setPopup({
         show: true,
         message: result.message || "Profile updated successfully!",
@@ -1257,31 +1259,30 @@ const RegisteredIPsPanel = ({
           {ips.map((ip) => (
             <div
               key={ip.id}
-              className="border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow"
+              className="relative border border-gray-200 rounded-lg p-6 pt-8 hover:shadow-lg transition-shadow flex flex-col h-full overflow-hidden"
             >
-              <div className="flex md:items-start justify-between mb-4 md:flex-row flex-col gap-4 items-stretch">
-                <div className="flex-1">
-                  <h3 className="font-semibold text-lg text-[#2d336b] mb-2">
-                    {ip.title}
-                  </h3>
-                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                    {ip.description}
-                  </p>
-                  <div className="flex items-center gap-4 text-sm">
-                    <span className="flex items-center gap-1">
-                      <span>{getIPTypeIcon(ip.ipType)}</span>
-                      {ip.ipType}
-                    </span>
-                    <span className="text-gray-500">{ip.category}</span>
-                  </div>
+              {/* Status Pill positioned absolutely to avoid layout shift */}
+              <span
+                className={`absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                  ip.status
+                )}`}
+              >
+                {ip.status}
+              </span>
+              <div className="mb-4">
+                <h3 className="font-semibold text-lg text-[#2d336b] mb-2 text-left break-words pr-12">
+                  {ip.title}
+                </h3>
+                <p className="text-gray-600 text-sm mb-3 text-left break-words line-clamp-3 pr-2">
+                  {ip.description}
+                </p>
+                <div className="flex flex-wrap items-center gap-4 text-sm">
+                  <span className="flex items-center gap-1">
+                    <span>{getIPTypeIcon(ip.ipType)}</span>
+                    {ip.ipType}
+                  </span>
+                  <span className="text-gray-500 break-words">{ip.category}</span>
                 </div>
-                <span
-                  className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                    ip.status
-                  )}`}
-                >
-                  {ip.status}
-                </span>
               </div>
 
               <div className="flex items-center justify-between pt-4 border-t border-gray-100 md:flex-row flex-col gap-3">
@@ -1392,10 +1393,11 @@ export const UserDashboard = () => {
 
   // Separate effect for fetching profile when needed
   useEffect(() => {
-    if (user && !userData) {
+    if (user) {
+      console.log("👤 User from context updated:", user);
       setUserData(user);
     }
-  }, [user, userData]);
+  }, [user]);
 
   // Fetch user statistics when component loads and when data changes
   useEffect(() => {
@@ -1603,8 +1605,8 @@ export const UserDashboard = () => {
         </div>
 
         {/* Statistics */}
-        <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-center bg-gradient-to-r from-[#f3f4fa] to-[#e8f0ff] p-6 rounded-xl shadow-lg border border-[#a9b5df]/20">
-          <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-blue-500">
+        <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 bg-gradient-to-r from-[#f3f4fa] to-[#e8f0ff] p-6 rounded-xl shadow-lg border border-[#a9b5df]/20">
+          <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-blue-500 text-left">
             {statsLoading ? (
               <div className="animate-pulse">
                 <div className="h-8 bg-gray-300 rounded mb-2"></div>
@@ -1621,7 +1623,7 @@ export const UserDashboard = () => {
               Total blockchain entries
             </p>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-purple-500">
+          <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-purple-500 text-left">
             {statsLoading ? (
               <div className="animate-pulse">
                 <div className="h-8 bg-gray-300 rounded mb-2"></div>
@@ -1636,7 +1638,7 @@ export const UserDashboard = () => {
             </p>
             <p className="text-xs text-gray-500 mt-1">Ownership changes</p>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-yellow-500">
+          <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-yellow-500 text-left">
             {statsLoading ? (
               <div className="animate-pulse">
                 <div className="h-8 bg-gray-300 rounded mb-2"></div>
@@ -1651,7 +1653,7 @@ export const UserDashboard = () => {
             </p>
             <p className="text-xs text-gray-500 mt-1">Awaiting confirmation</p>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-green-500">
+          <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-green-500 text-left">
             {statsLoading ? (
               <div className="animate-pulse">
                 <div className="h-8 bg-gray-300 rounded mb-2"></div>

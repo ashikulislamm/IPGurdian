@@ -59,7 +59,7 @@ const NFTMarketplace = () => {
     <>
     <ResponsiveNavbar />
     <div className="nft-marketplace-container mt-16">
-      <div className="marketplace-header">
+      <div className="marketplace-header mt-12">
         <h1>NFT Marketplace</h1>
         <p>Discover and trade intellectual property NFTs</p>
       </div>
@@ -133,44 +133,31 @@ const NFTMarketplace = () => {
         <div className="nft-grid">
           {nfts.map((nft) => (
             <div key={nft._id} className="nft-card">
-              {/* Card Content - No Image Section */}
               <div className="nft-card-content">
                 <div className="nft-header">
                   <span className="nft-type-badge">{nft.ipType}</span>
-                  {nft.isVerified && (
-                    <span className="verified-badge">✓ Verified</span>
-                  )}
+                  {nft.isVerified && <span className="verified-badge">✓ Verified</span>}
                 </div>
-
                 <h3 className="nft-title">{nft.title}</h3>
                 <p className="nft-description">{nft.description}</p>
-
                 <div className="nft-details">
                   <div className="detail-row">
-                    <span className="label">CREATOR:</span>
-                    <span className="value creator-name">
-                      {nft.creator?.name || 'Unknown'}
-                    </span>
+                    <span className="label">Creator</span>
+                    <span className="value creator-name">{nft.creator?.name || 'Unknown'}</span>
                   </div>
-
                   <div className="detail-row">
-                    <span className="label">CURRENT PRICE</span>
+                    <span className="label">Current Price</span>
                     <span className="value price">{nft.priceETH.toFixed(3)} ETH</span>
                   </div>
-
                   <div className="detail-row">
                     <span className="label">Market Value</span>
-                    <span className="value market-value">
-                      {(nft.priceETH * 2).toFixed(3)} ETH
-                    </span>
+                    <span className="value market-value">{(nft.priceETH * 2).toFixed(3)} ETH</span>
                   </div>
-
                   <div className="detail-row">
                     <span className="label">Token ID</span>
                     <span className="value">#{nft.tokenId}</span>
                   </div>
                 </div>
-
                 <div className="nft-stats">
                   <div className="stat">
                     <span className="stat-icon">👁️</span>
@@ -181,14 +168,11 @@ const NFTMarketplace = () => {
                     <span>{nft.favorites || 0} favorites</span>
                   </div>
                 </div>
-
+              </div>
+              <div className="nft-card-footer">
                 <div className="nft-actions">
-                  <button className="btn-primary">
-                    Buy Now
-                  </button>
-                  <button className="btn-secondary">
-                    View Details
-                  </button>
+                  <button className="btn-primary">Buy Now</button>
+                  <button className="btn-secondary">View Details</button>
                 </div>
               </div>
             </div>

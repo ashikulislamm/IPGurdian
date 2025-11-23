@@ -143,12 +143,12 @@ const Marketplace = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="min-h-screen bg-gray-50 py-8"
+        className="min-h-screen mb-10"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-[#2d336b] mb-4">
+          <div className="text-center mb-12 ">
+            <h1 className="text-4xl font-bold text-[#2d336b] mb-4 py-10">
               Registered IPs Marketplace
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
@@ -235,10 +235,10 @@ const Marketplace = () => {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3 }}
-                      className="w-full max-w-sm mx-auto bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
+                      className="w-full max-w-sm mx-auto bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1 flex flex-col h-full"
                       onClick={() => viewIPDetails(ip._id)}
                     >
-                      <div className="p-8">
+                      <div className="p-8 flex-1">
                         <div className="text-center mb-6">
                           <div className="flex items-center justify-center gap-2 mb-3">
                             <span className="text-3xl">
