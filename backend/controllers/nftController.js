@@ -9,6 +9,46 @@ import pricingService from '../services/pricingService.js';
 import { ethers } from 'ethers';
 
 /**
+ * Parse smart contract errors to user-friendly messages
+ */
+const parseContractError = (error) => {
+  const errorString = error.toString();
+  
+  // Check for AlreadyRegistered error
+  if (errorString.includes('AlreadyRegistered')) {
+    return {
+      code: 'ALREADY_REGISTERED',
+      message: 'This intellectual property has already been registered on the blockchain',
+      userMessage: 'This content has already been registered. Each IP can only be registered once.'
+    };
+  }
+  
+  // Check for other common errors
+  if (errorString.includes('NotOwnerNorApproved')) {
+    return {
+      code: 'NOT_AUTHORIZED',
+      message: 'You are not authorized to perform this action',
+      userMessage: 'You do not have permission to mint this NFT.'
+    };
+  }
+  
+  if (errorString.includes('PriceIsZero')) {
+    return {
+      code: 'INVALID_PRICE',
+      message: 'Price cannot be zero',
+      userMessage: 'Please set a valid price for your NFT.'
+    };
+  }
+  
+  // Generic error
+  return {
+    code: 'CONTRACT_ERROR',
+    message: error.message || 'Smart contract error',
+    userMessage: 'An error occurred while interacting with the blockchain.'
+  };
+};
+
+/**
  * Prepare NFT metadata from IP registration
  */
 const prepareNFTFromIP = async (req, res) => {
@@ -89,17 +129,33 @@ const prepareNFTFromIP = async (req, res) => {
     const metadataResult = await ipfsService.uploadJSON(metadata);
     const tokenURI = `ipfs://${metadataResult.hash}`;
 
-    // Create data hash for blockchain registration
+    // Create data hash for blockchain registration (content-only, no user info)
     const dataHash = ethers.keccak256(
       ethers.toUtf8Bytes(JSON.stringify({
-        title: ipData.title,
-        description: ipData.description,
-        category: ipData.category,
-        creator: ipData.userId._id.toString(),
-        registrationDate: ipData.registrationDate.toISOString(),
-        files: ipData.attachedFiles?.map(f => f.ipfsHash) || []
+        title: ipData.title.trim().toLowerCase(),
+        description: ipData.description.trim().toLowerCase(),
+        category: ipData.category.trim().toLowerCase(),
+        ipType: ipData.ipType,
+        files: (ipData.attachedFiles?.map(f => f.ipfsHash) || []).filter(h => h).sort()
       }))
     );
+
+    console.log('🔐 NFT dataHash generated:', dataHash);
+
+    // Check if this dataHash already exists to prevent AlreadyRegistered error
+    const existingNFT = await NFT.findOne({ metadataHash: dataHash.replace('0x', '') });
+    if (existingNFT) {
+      return res.status(409).json({
+        success: false,
+        code: 'ALREADY_REGISTERED',
+        message: 'This IP content has already been minted as an NFT',
+        userMessage: 'This intellectual property has already been registered on the blockchain.',
+        existingNFT: {
+          tokenId: existingNFT.tokenId,
+          title: existingNFT.title
+        }
+      });
+    }
 
     // Calculate suggested pricing
     const tempNFT = {
@@ -426,7 +482,31 @@ const storeMintedNFT = async (req, res) => {
     });
   } catch (error) {
     console.error('Store minted NFT error:', error);
-    res.status(500).json({ success: false, message: 'Failed to store minted NFT', error: error.message });
+    
+    // Check if it's a duplicate key error (MongoDB unique constraint on fileHash)
+    if (error.code === 11000 && error.keyPattern?.fileHash) {
+      return res.status(409).json({ 
+        success: false, 
+        code: 'ALREADY_REGISTERED',
+        message: 'This IP content has already been registered',
+        userMessage: 'This intellectual property content is already registered. Each IP can only be registered once.'
+      });
+    }
+    
+    // Parse smart contract errors
+    const parsedError = parseContractError(error);
+    if (parsedError.code === 'ALREADY_REGISTERED') {
+      return res.status(409).json({ 
+        success: false, 
+        ...parsedError
+      });
+    }
+    
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to store minted NFT', 
+      error: error.message 
+    });
   }
 };
 

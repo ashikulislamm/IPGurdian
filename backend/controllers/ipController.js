@@ -2,8 +2,22 @@ import IP from "../models/IPModel.js";
 import User from "../models/UserModel.js";
 import File from "../models/FileModel.js";
 import mongoose from "mongoose";
+import { generateIPContentHash } from "../utils/hashUtils.js";
 
 // Register a new IP
+/**
+ * Register a new Intellectual Property
+ * 
+ * This function implements the AlreadyRegistered check from the smart contract.
+ * It generates a content hash (dataHash) based on the IP's core attributes and
+ * checks if an IP with the same content hash already exists in the database.
+ * 
+ * The hash is generated using the same algorithm as the smart contract:
+ * keccak256(title + description + ipType + category + creator + attachedFiles)
+ * 
+ * This prevents duplicate registrations of the same intellectual property content,
+ * matching the smart contract's AlreadyRegistered error behavior.
+ */
 const registerIP = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -34,7 +48,53 @@ const registerIP = async (req, res) => {
       });
     }
 
-    // Create new IP record
+    // Generate content hash (dataHash) for duplicate detection
+    // This matches the smart contract's AlreadyRegistered check
+    // IMPORTANT: Hash is content-only (no creator/user info) to detect duplicates across ALL users
+    const contentHash = generateIPContentHash({
+      title,
+      description,
+      ipType,
+      category,
+      attachedFiles: (attachedFiles || []).map(f => f.ipfsHash || f.hash).filter(h => h)
+    });
+
+    console.log('🔐 Generated content hash:', contentHash);
+    console.log('📝 Content being hashed:', { title, description, ipType, category, fileCount: (attachedFiles || []).length });
+
+    // Check if IP with same content hash already exists (AlreadyRegistered)
+    // This checks GLOBALLY across all users - content is unique regardless of who uploads it
+    const existingIP = await IP.findOne({ fileHash: contentHash });
+    if (existingIP) {
+      console.log('❌ Duplicate IP detected! Hash:', contentHash);
+      console.log('📋 Existing IP:', {
+        id: existingIP._id,
+        title: existingIP.title,
+        owner: existingIP.userId,
+        registeredBy: existingIP.creator
+      });
+      
+      return res.status(409).json({
+        success: false,
+        error: "AlreadyRegistered",
+        code: "DUPLICATE_CONTENT",
+        message: "This intellectual property content has already been registered by another user",
+        details: "The content (title, description, type, category, and files) matches an existing registration. Each unique IP can only be registered once in the system.",
+        existingIP: {
+          id: existingIP._id,
+          title: existingIP.title,
+          ipType: existingIP.ipType,
+          category: existingIP.category,
+          registrationDate: existingIP.registrationDate,
+          transactionHash: existingIP.transactionHash,
+          status: existingIP.status
+        }
+      });
+    }
+    
+    console.log('✅ Content hash is unique, proceeding with registration');
+
+    // Create new IP record with content hash for duplicate prevention
     const newIP = new IP({
       title: title.trim(),
       description: description.trim(),
@@ -49,7 +109,7 @@ const registerIP = async (req, res) => {
       ipId: ipId || null,
       fileName: fileName || null,
       fileSize: fileSize || null,
-      fileHash: fileHash || null,
+      fileHash: contentHash, // Store content hash for duplicate detection
       attachedFiles: attachedFiles || [],
       isPublic: isPublic || false,
       status: transactionHash ? "confirmed" : "pending",
@@ -161,10 +221,26 @@ const registerIP = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error registering IP:", error);
+    console.error("❌ Error registering IP:", error);
+    
+    // Check for MongoDB duplicate key error (E11000) - this is our backup safety net
+    if (error.code === 11000) {
+      if (error.keyPattern?.fileHash || error.message?.includes('fileHash')) {
+        console.log('🛑 MongoDB unique constraint prevented duplicate registration');
+        return res.status(409).json({
+          success: false,
+          error: "AlreadyRegistered",
+          code: "DUPLICATE_CONTENT",
+          message: "This intellectual property content has already been registered",
+          details: "The content hash matches an existing registration in the database. Each unique IP can only be registered once, regardless of who attempts to register it."
+        });
+      }
+    }
+    
     res.status(500).json({
       success: false,
       error: "Failed to register IP",
+      message: error.message
     });
   }
 };

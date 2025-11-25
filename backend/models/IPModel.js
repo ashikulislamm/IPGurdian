@@ -146,6 +146,9 @@ IPSchema.index({ userId: 1, registrationDate: -1 });
 IPSchema.index({ creator: 1 });
 IPSchema.index({ transactionHash: 1 });
 IPSchema.index({ ipId: 1 });
+// CRITICAL: Unique index on fileHash to prevent duplicate content registration (AlreadyRegistered)
+// This ensures that the same content cannot be registered twice, regardless of who uploads it
+IPSchema.index({ fileHash: 1 }, { unique: true, sparse: true, name: 'unique_content_hash' });
 
 // Virtual for formatted registration date
 IPSchema.virtual("formattedDate").get(function () {
