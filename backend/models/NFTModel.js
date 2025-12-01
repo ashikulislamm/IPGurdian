@@ -151,7 +151,7 @@ const NFTSchema = new mongoose.Schema({
 });
 
 // Indexes for better query performance
-NFTSchema.index({ tokenId: 1 });
+// Note: tokenId already has unique index from schema definition
 NFTSchema.index({ owner: 1 });
 NFTSchema.index({ creator: 1 });
 NFTSchema.index({ isListed: 1, status: 1 });

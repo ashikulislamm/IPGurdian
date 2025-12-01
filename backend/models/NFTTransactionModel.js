@@ -77,11 +77,11 @@ const NFTTransactionSchema = new mongoose.Schema({
 });
 
 // Indexes
+// Note: transactionHash already has unique index from schema definition
 NFTTransactionSchema.index({ nft: 1, createdAt: -1 });
 NFTTransactionSchema.index({ tokenId: 1 });
 NFTTransactionSchema.index({ from: 1 });
 NFTTransactionSchema.index({ to: 1 });
-NFTTransactionSchema.index({ transactionHash: 1 });
 NFTTransactionSchema.index({ type: 1 });
 NFTTransactionSchema.index({ createdAt: -1 });
 

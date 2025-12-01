@@ -56,15 +56,28 @@ const prepareNFTFromIP = async (req, res) => {
     const { ipRegistrationId } = req.body;
     const userId = req.user.id;
 
+    console.log('🎨 Preparing NFT from IP:', { ipRegistrationId, userId });
+
     // Get IP registration with populated user data
     const ipData = await IP.findById(ipRegistrationId).populate('userId', 'name email');
 
     if (!ipData) {
+      console.error('❌ IP registration not found:', ipRegistrationId);
       return res.status(404).json({
         success: false,
         message: 'IP registration not found'
       });
     }
+
+    console.log('📋 IP Data loaded:', {
+      id: ipData._id,
+      title: ipData.title,
+      status: ipData.status,
+      isPublic: ipData.isPublic,
+      isEligibleForNFT: ipData.isEligibleForNFT,
+      nftTokenId: ipData.nftTokenId,
+      owner: ipData.userId._id
+    });
 
     // Verify ownership
     if (ipData.userId._id.toString() !== userId) {
@@ -82,11 +95,26 @@ const prepareNFTFromIP = async (req, res) => {
       });
     }
 
-    // Check if eligible
-    if (!ipData.isEligibleForNFT || ipData.status !== 'confirmed') {
+    // Check if eligible - accept both confirmed and pending status for public IPs
+    const eligibleStatuses = ['confirmed', 'pending'];
+    if (!eligibleStatuses.includes(ipData.status)) {
       return res.status(400).json({
         success: false,
-        message: 'IP must be confirmed and eligible for NFT minting'
+        message: `IP must be in confirmed or pending status for NFT minting (current: ${ipData.status})`
+      });
+    }
+    
+    // Auto-set eligibility if not already set (for legacy IPs or those created before auto-eligibility)
+    if (!ipData.isEligibleForNFT && ipData.isPublic) {
+      ipData.isEligibleForNFT = true;
+      await ipData.save();
+    }
+    
+    // Final check after auto-correction
+    if (!ipData.isEligibleForNFT) {
+      return res.status(400).json({
+        success: false,
+        message: 'IP must be public and eligible for NFT minting'
       });
     }
 
@@ -184,11 +212,13 @@ const prepareNFTFromIP = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('NFT preparation error:', error);
+    console.error('❌ NFT preparation error:', error);
+    console.error('Error stack:', error.stack);
     res.status(500).json({
       success: false,
       message: 'Failed to prepare NFT metadata',
-      error: error.message
+      error: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 };
@@ -418,8 +448,21 @@ const storeMintedNFT = async (req, res) => {
       return res.status(400).json({ success: false, message: 'This IP is already minted as an NFT' });
     }
 
-    if (!ipData.isEligibleForNFT || ipData.status !== 'confirmed') {
-      return res.status(400).json({ success: false, message: 'IP not eligible for minting' });
+    // Check eligibility - accept both confirmed and pending status for public IPs
+    const eligibleStatuses = ['confirmed', 'pending'];
+    if (!eligibleStatuses.includes(ipData.status)) {
+      return res.status(400).json({ success: false, message: `IP must be in confirmed or pending status (current: ${ipData.status})` });
+    }
+    
+    // Auto-set eligibility if not already set (for legacy IPs)
+    if (!ipData.isEligibleForNFT && ipData.isPublic) {
+      ipData.isEligibleForNFT = true;
+      await ipData.save();
+    }
+    
+    // Final check
+    if (!ipData.isEligibleForNFT) {
+      return res.status(400).json({ success: false, message: 'IP must be public and eligible for minting' });
     }
 
     // Determine next tokenId

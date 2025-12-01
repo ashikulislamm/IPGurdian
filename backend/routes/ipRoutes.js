@@ -68,6 +68,26 @@ router.get('/nft-ready', async (req, res) => {
   }
 });
 
+// @route POST /api/ip/migrate-eligibility
+// Sets isEligibleForNFT=true for all public confirmed or pending IPs without NFT
+router.post('/migrate-eligibility', async (req, res) => {
+  try {
+    const result = await IP.updateMany({
+      isPublic: true,
+      status: { $in: ['confirmed', 'pending'] },
+      nftTokenId: { $in: [null, undefined] },
+      isEligibleForNFT: { $ne: true }
+    }, {
+      $set: { isEligibleForNFT: true }
+    });
+
+    res.json({ success: true, updated: result.modifiedCount });
+  } catch (e) {
+    console.error('Eligibility migration error:', e);
+    res.status(500).json({ success: false, message: e.message });
+  }
+});
+
 // @route   POST /api/ip/register
 router.post("/register", registerIP);
 

@@ -113,6 +113,8 @@ const registerIP = async (req, res) => {
       attachedFiles: attachedFiles || [],
       isPublic: isPublic || false,
       status: transactionHash ? "confirmed" : "pending",
+      // Automatically mark eligible for NFT if public and confirmed OR public pending (early minting preview)
+      isEligibleForNFT: (isPublic && (transactionHash ? true : true))
     });
 
     await newIP.save();
@@ -411,6 +413,11 @@ const updateIPStatus = async (req, res) => {
     if (ipId) ip.ipId = ipId;
 
     ip.lastUpdated = new Date();
+
+    // Auto-enable NFT eligibility when status becomes confirmed and IP is public
+    if (ip.status === 'confirmed' && ip.isPublic && !ip.nftTokenId) {
+      ip.isEligibleForNFT = true;
+    }
 
     await ip.save();
 
